@@ -104,7 +104,8 @@ def test_json_has_sorted_keys(tmp_path, sample_index):
             assert wb_keys == sorted(wb_keys)
 
     if data.get("tables"):
-        for table_data in data["tables"].values():
+        # tables is a list, not a dict
+        for table_data in data["tables"]:
             table_keys = list(table_data.keys())
             assert table_keys == sorted(table_keys)
 

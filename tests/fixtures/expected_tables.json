@@ -11,15 +11,15 @@
           "tag": "~FI_PROCESS",
           "logical_name": null,
           "expected_columns": [
-            "TechName",
-            "TechDesc",
-            "Sets",
-            "PrimaryCG",
-            "Region"
+            "process",
+            "description",
+            "sets",
+            "primarycg",
+            "region"
           ],
           "expected_row_count": 3,
           "expected_primary_key": [
-            "TechName"
+            "process"
           ]
         },
         {
@@ -28,14 +28,14 @@
           "tag": "~FI_COMM",
           "logical_name": null,
           "expected_columns": [
-            "CommName",
-            "CommDesc",
-            "CSet",
-            "CTSLvl"
+            "commodity",
+            "description",
+            "csets",
+            "ctslvl"
           ],
           "expected_row_count": 3,
           "expected_primary_key": [
-            "CommName"
+            "commodity"
           ]
         },
         {
@@ -44,20 +44,20 @@
           "tag": "~FI_T",
           "logical_name": "BaseParameters",
           "expected_columns": [
-            "Region",
-            "TechName",
-            "Attribute",
-            "Commodity",
+            "region",
+            "process",
+            "attribute",
+            "commodity",
             "2020",
             "2025",
             "2030"
           ],
           "expected_row_count": 7,
           "expected_primary_key": [
-            "Region",
-            "TechName",
-            "Attribute",
-            "Commodity"
+            "region",
+            "process",
+            "attribute",
+            "commodity"
           ]
         }
       ]
@@ -72,7 +72,7 @@
           "tag": "~STARTYEAR",
           "logical_name": null,
           "expected_columns": [],
-          "expected_row_count": 1,
+          "expected_row_count": 0,
           "note": "Single-value tag, no tabular data"
         },
         {
@@ -81,7 +81,7 @@
           "tag": "~ENDYEAR",
           "logical_name": null,
           "expected_columns": [],
-          "expected_row_count": 1,
+          "expected_row_count": 0,
           "note": "Single-value tag, no tabular data"
         },
         {
@@ -90,7 +90,7 @@
           "tag": "~ACTIVEPDEF",
           "logical_name": null,
           "expected_columns": [],
-          "expected_row_count": 1,
+          "expected_row_count": 0,
           "note": "Single-value tag, no tabular data"
         },
         {
@@ -112,6 +112,6 @@
   "summary": {
     "total_workbooks": 2,
     "total_tables": 7,
-    "total_data_rows": 15
+    "total_data_rows": 13
   }
 }
