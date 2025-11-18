@@ -7,7 +7,7 @@ import sys
 from rich.console import Console
 from rich.logging import RichHandler
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 console = Console()
 
@@ -15,9 +15,9 @@ console = Console()
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        prog="austimes-tables",
+        prog="times-tables",
         description="Git-friendly CLI for extracting, validating, and diffing VEDA-TIMES tables",
-        epilog="For detailed documentation, see: https://github.com/austimes/times-tables",
+        epilog="For detailed documentation, see: https://github.com/dlg0/times-tables",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
@@ -177,6 +177,25 @@ Note: Phase 1 implementation. Row-level diff visualization planned for Phase 2.
         help="Maximum rows to show in detailed diff (default: 2000)",
     )
 
+    # update command
+    update_parser = subparsers.add_parser(
+        "update",
+        help="Update times-tables to the latest version",
+        description="Update times-tables CLI to the latest version from GitHub.",
+        epilog="""
+Examples:
+  # Update to latest version
+  times-tables update
+
+  # Update to specific version
+  times-tables update --version v0.2.0
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    update_parser.add_argument(
+        "--version", help="Specific version to install (e.g., v0.2.0). Default: latest"
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -228,6 +247,10 @@ Note: Phase 1 implementation. Row-level diff visualization planned for Phase 2.
         from austimes_tables.commands.report import generate_report
 
         return generate_report(args.deck_a, args.deck_b, args.output, args.limit_rows)
+    elif args.command == "update":
+        from austimes_tables.commands.update import update_cli
+
+        return update_cli(args.version)
 
     return 0
 

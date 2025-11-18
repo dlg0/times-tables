@@ -209,8 +209,8 @@ uv run pytest
 uv run ruff check .
 
 # Run on sample deck
-uv run austimes-tables extract tests/fixtures/sample_deck
-uv run austimes-tables validate tests/fixtures/sample_deck
+uv run times-tables extract tests/fixtures/sample_deck
+uv run times-tables validate tests/fixtures/sample_deck
 ```
 
 ### Testing Guidelines

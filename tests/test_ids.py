@@ -146,7 +146,7 @@ class TestTableID:
         )
         # Position doesn't matter - IDs should be identical
         assert tid_original == tid_moved
-        
+
         # But different sheet = different ID (includes sheet in ID)
         tid_different_sheet = generate_table_id(
             tag_type="fi_t",
