@@ -143,6 +143,10 @@ For more details, see README.md and QUICKSTART.md.
 
 ## Repository Conventions
 
+### Preferred Tools
+
+- **GitHub CLI (`gh`)**: Use for all GitHub interactions (PRs, issues, releases, etc.)
+
 ### Package Management
 
 This project uses **uv** for Python package management. Do NOT use pip, poetry, or other tools.
