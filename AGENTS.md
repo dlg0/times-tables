@@ -143,6 +143,15 @@ For more details, see README.md and QUICKSTART.md.
 
 ## Repository Conventions
 
+### Package Management
+
+This project uses **uv** for Python package management. Do NOT use pip, poetry, or other tools.
+
+- **Installing dependencies**: `uv sync --all-extras`
+- **Adding new packages**: `uv add <package-name>`
+- **Running commands**: `uv run <command>` or activate venv first
+- **Development install**: `uv sync --all-extras` (includes dev dependencies)
+
 ### Code Output Location
 
 - **shadow/** - Generated output, do NOT commit
@@ -190,19 +199,14 @@ For an issue to be considered complete:
 ### Local Development Quickstart
 
 ```bash
-# Install dependencies with uv (recommended)
+# Install dependencies with uv
 uv sync --all-extras
 
-# Or use traditional venv + pip
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -e ".[dev]"
-
 # Run tests
-uv run pytest  # or just: pytest
+uv run pytest
 
 # Check code style
-uv run ruff check .  # or just: ruff check .
+uv run ruff check .
 
 # Run on sample deck
 uv run austimes-tables extract tests/fixtures/sample_deck

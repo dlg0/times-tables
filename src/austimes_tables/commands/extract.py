@@ -5,6 +5,8 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
+from rich.console import Console
+
 from austimes_tables import extract, ids, scanner
 from austimes_tables.csvio import write_deterministic_csv
 from austimes_tables.index import TablesIndexIO
@@ -12,6 +14,7 @@ from austimes_tables.models import TableMeta, TablesIndex, WorkbookMeta
 from austimes_tables.veda import VedaSchema
 
 logger = logging.getLogger(__name__)
+console = Console()
 
 
 def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = False) -> TablesIndex:
@@ -67,7 +70,7 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
 
     # Process each workbook
     for workbook_path in sorted(workbook_paths):
-        logger.info(f"Scanning {workbook_path.name}...")
+        console.print(f"[cyan]Scanning[/cyan] {workbook_path.name}...")
 
         # Generate workbook_id (hash of file content)
         workbook_id = ids.generate_workbook_id(str(workbook_path))
@@ -93,10 +96,10 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
         try:
             tables = scanner.scan_workbook(str(workbook_path))
         except Exception as e:
-            logger.warning(f"  Failed to scan {workbook_path.name}: {e}")
+            console.print(f"  [yellow]⚠[/yellow] Failed to scan {workbook_path.name}: {e}")
             continue
 
-        logger.info(f"  Found {len(tables)} tables")
+        console.print(f"  [dim]Found {len(tables)} tables[/dim]")
 
         # Process each table
         for table_info in tables:
@@ -124,7 +127,7 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
                     workbook_path=str(workbook_path), table_meta=table_info, schema=schema
                 )
             except Exception as e:
-                logger.warning(f"  Failed to extract {table_id}: {e}")
+                console.print(f"  [yellow]⚠[/yellow] Failed to extract {table_id}: {e}")
                 continue
 
             # Skip canonicalize for now - just use extracted columns as-is
@@ -157,7 +160,7 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
             csv_relative_path = csv_path.relative_to(shadow_dir)
 
             row_count = len(df)
-            logger.info(f"  Extracted {table_id} ({row_count} rows)")
+            console.print(f"  [green]✓[/green] Extracted {table_id} [dim]({row_count} rows)[/dim]")
 
             # Add table to index
             table_meta = TableMeta(
@@ -181,7 +184,7 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
     # Write tables_index.json
     index_path = meta_dir / "tables_index.json"
     TablesIndexIO.write(index, str(index_path))
-    logger.info(f"Wrote {index_path.relative_to(deck_path)}")
+    console.print(f"[blue]Wrote[/blue] {index_path.relative_to(deck_path)}")
 
     return index
 

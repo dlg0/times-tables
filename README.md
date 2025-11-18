@@ -34,7 +34,21 @@ deck_root/
 
 ## Installation
 
-**Requirements**: Python 3.10+, supports macOS/Linux/Windows
+**Requirements**: Python 3.10+, [uv](https://docs.astral.sh/uv/) package manager, supports macOS/Linux/Windows
+
+**Note**: This project uses **uv** for package management.
+
+### Install uv
+
+If you don't have uv installed:
+
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
 
 ### Using uv (Recommended)
 
@@ -416,19 +430,14 @@ Table fi_t__powerplants moved from Sheet1 to Sheet2
 git clone https://github.com/austimes/times-tables.git
 cd times-tables
 
-# Install with uv (recommended)
+# Install dependencies with uv
 uv sync --all-extras
 
-# Or use traditional venv + pip
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -e ".[dev]"
-
 # Run tests
-uv run pytest  # or just: pytest
+uv run pytest
 
 # Check code style
-uv run ruff check .  # or just: ruff check .
+uv run ruff check .
 
 # Run on sample deck
 uv run austimes-tables extract tests/fixtures/sample_deck

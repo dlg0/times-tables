@@ -4,7 +4,12 @@ import argparse
 import logging
 import sys
 
-__version__ = "0.1.0"
+from rich.console import Console
+from rich.logging import RichHandler
+
+__version__ = "0.1.1"
+
+console = Console()
 
 
 def main():
@@ -184,15 +189,17 @@ Note: Phase 1 implementation. Row-level diff visualization planned for Phase 2.
 
         # Configure logging
         logging.basicConfig(
-            level=logging.INFO if args.verbose else logging.WARNING, format="%(message)s"
+            level=logging.INFO if args.verbose else logging.WARNING,
+            format="%(message)s",
+            handlers=[RichHandler(console=console, show_time=False, show_path=False)],
         )
 
         try:
             index = extract_deck(args.deck_root, args.output_dir, args.verbose)
-            print(f"✓ Extracted {len(index.tables)} tables")
+            console.print(f"[green]✓[/green] Extracted {len(index.tables)} tables")
             return 0
         except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
+            console.print(f"[red]Error:[/red] {e}", file=sys.stderr)
             if args.verbose:
                 import traceback
 
@@ -202,7 +209,11 @@ Note: Phase 1 implementation. Row-level diff visualization planned for Phase 2.
         from austimes_tables.commands.format import format_deck
 
         # Configure logging
-        logging.basicConfig(level=logging.INFO, format="%(message)s")
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(message)s",
+            handlers=[RichHandler(console=console, show_time=False, show_path=False)],
+        )
 
         return format_deck(args.deck_root)
     elif args.command == "validate":

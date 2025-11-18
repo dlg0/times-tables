@@ -4,12 +4,14 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+from rich.console import Console
 
 from austimes_tables.csvio import write_deterministic_csv
 from austimes_tables.index import TablesIndexIO
 from austimes_tables.veda import VedaSchema
 
 logger = logging.getLogger(__name__)
+console = Console()
 
 
 def format_deck(deck_root: str) -> int:
@@ -37,39 +39,39 @@ def format_deck(deck_root: str) -> int:
     """
     deck_path = Path(deck_root).resolve()
     if not deck_path.exists():
-        logger.error(f"Deck root not found: {deck_root}")
+        console.print(f"[red]Error:[/red] Deck root not found: {deck_root}")
         return 1
 
     if not deck_path.is_dir():
-        logger.error(f"Deck root must be a directory: {deck_root}")
+        console.print(f"[red]Error:[/red] Deck root must be a directory: {deck_root}")
         return 1
 
     # Locate shadow directory
     shadow_dir = deck_path / "shadow"
     if not shadow_dir.exists():
-        logger.error(f"Shadow directory not found: {shadow_dir}")
-        logger.error("Run 'extract' command first to create shadow tables")
+        console.print(f"[red]Error:[/red] Shadow directory not found: {shadow_dir}")
+        console.print("Run 'extract' command first to create shadow tables")
         return 1
 
     meta_dir = shadow_dir / "meta"
     index_path = meta_dir / "tables_index.json"
 
     if not index_path.exists():
-        logger.error(f"Index file not found: {index_path}")
-        logger.error("Run 'extract' command first to create tables index")
+        console.print(f"[red]Error:[/red] Index file not found: {index_path}")
+        console.print("Run 'extract' command first to create tables index")
         return 1
 
     # Read tables index
     try:
         index = TablesIndexIO.read(str(index_path))
     except Exception as e:
-        logger.error(f"Failed to read tables index: {e}")
+        console.print(f"[red]Error:[/red] Failed to read tables index: {e}")
         return 1
 
     # Initialize schema
     schema = VedaSchema()
 
-    logger.info(f"Formatting {len(index.tables)} tables...")
+    console.print(f"[cyan]Formatting[/cyan] {len(index.tables)} tables...")
 
     # Track statistics
     formatted_count = 0
@@ -82,7 +84,7 @@ def format_deck(deck_root: str) -> int:
 
         # Check if CSV file exists
         if not csv_path.exists():
-            logger.warning(f"  CSV file not found: {table_meta.csv_path}")
+            console.print(f"  [yellow]⚠[/yellow] CSV file not found: {table_meta.csv_path}")
             error_count += 1
             continue
 
@@ -118,7 +120,10 @@ def format_deck(deck_root: str) -> int:
             # Verify all columns exist in DataFrame
             missing_cols = [col for col in column_order if col not in df.columns]
             if missing_cols:
-                logger.warning(f"  Columns in index but not in CSV for {table_id}: {missing_cols}")
+                console.print(
+                    f"  [yellow]⚠[/yellow] Columns in index but not in CSV "
+                    f"for {table_id}: {missing_cols}"
+                )
                 # Use actual DataFrame columns
                 column_order = list(df.columns)
 
@@ -135,25 +140,25 @@ def format_deck(deck_root: str) -> int:
             if old_hash != new_csv_sha256:
                 logger.debug(f"  Updated hash for {table_id}")
 
-            logger.info(f"  Formatted {table_id}")
+            console.print(f"  [green]✓[/green] Formatted {table_id}")
             formatted_count += 1
 
         except Exception as e:
-            logger.error(f"  Failed to format {table_id}: {e}")
+            console.print(f"  [red]✗[/red] Failed to format {table_id}: {e}")
             error_count += 1
             continue
 
     # Write updated index
     try:
         TablesIndexIO.write(index, str(index_path))
-        logger.info(f"✓ Formatted {formatted_count} tables")
+        console.print(f"[green]✓[/green] Formatted {formatted_count} tables")
 
         if error_count > 0:
-            logger.warning(f"! {error_count} tables had errors")
+            console.print(f"[yellow]![/yellow] {error_count} tables had errors")
             return 1
 
         return 0
 
     except Exception as e:
-        logger.error(f"Failed to write updated index: {e}")
+        console.print(f"[red]Error:[/red] Failed to write updated index: {e}")
         return 1

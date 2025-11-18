@@ -88,18 +88,15 @@ def temp_deck():
         yield deck_path
 
 
-def test_format_deck_success(temp_deck, caplog):
+def test_format_deck_success(temp_deck, capsys):
     """Test successful formatting of shadow tables."""
-    import logging
-
-    caplog.set_level(logging.INFO)
-
     result = format_deck(str(temp_deck))
 
     assert result == 0
-    assert "Formatting 1 tables..." in caplog.text
-    assert "Formatted fi_t_test" in caplog.text
-    assert "✓ Formatted 1 tables" in caplog.text
+    captured = capsys.readouterr()
+    assert "Formatting 1 tables" in captured.out
+    assert "Formatted fi_t_test" in captured.out
+    assert "Formatted 1 tables" in captured.out
 
 
 def test_format_preserves_data(temp_deck):
@@ -174,12 +171,8 @@ def test_format_idempotent(temp_deck):
     assert index_content1 == index_content2
 
 
-def test_format_missing_shadow_dir(caplog):
+def test_format_missing_shadow_dir(capsys):
     """Test error handling when shadow directory doesn't exist."""
-    import logging
-
-    caplog.set_level(logging.ERROR)
-
     with tempfile.TemporaryDirectory() as tmpdir:
         deck_path = Path(tmpdir) / "no_shadow"
         deck_path.mkdir()
@@ -187,16 +180,13 @@ def test_format_missing_shadow_dir(caplog):
         result = format_deck(str(deck_path))
 
         assert result == 1
-        assert "Shadow directory not found" in caplog.text
-        assert "Run 'extract' command first" in caplog.text
+        captured = capsys.readouterr()
+        assert "Shadow directory not found" in captured.out
+        assert "Run 'extract' command first" in captured.out
 
 
-def test_format_missing_index_file(caplog):
+def test_format_missing_index_file(capsys):
     """Test error handling when index file doesn't exist."""
-    import logging
-
-    caplog.set_level(logging.ERROR)
-
     with tempfile.TemporaryDirectory() as tmpdir:
         deck_path = Path(tmpdir) / "missing_index"
         deck_path.mkdir()
@@ -207,15 +197,12 @@ def test_format_missing_index_file(caplog):
         result = format_deck(str(deck_path))
 
         assert result == 1
-        assert "Index file not found" in caplog.text
+        captured = capsys.readouterr()
+        assert "Index file not found" in captured.out
 
 
-def test_format_missing_csv_file(temp_deck, caplog):
+def test_format_missing_csv_file(temp_deck, capsys):
     """Test handling of missing CSV files."""
-    import logging
-
-    caplog.set_level(logging.WARNING)
-
     # Delete CSV file
     csv_path = temp_deck / "shadow" / "tables" / "abc12345" / "fi_t_test.csv"
     csv_path.unlink()
@@ -224,7 +211,8 @@ def test_format_missing_csv_file(temp_deck, caplog):
 
     # Should return error code due to missing file
     assert result == 1
-    assert "CSV file not found" in caplog.text
+    captured = capsys.readouterr()
+    assert "CSV file not found" in captured.out
 
 
 def test_format_sorts_by_primary_keys(temp_deck):
