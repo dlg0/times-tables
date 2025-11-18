@@ -95,6 +95,35 @@ def read_table_range(
     if not headers:
         return [], []
 
+    # Handle duplicate headers by appending position suffix
+    # This preserves both columns rather than losing data
+    from collections import Counter
+
+    header_counts = Counter(headers)
+    duplicates = {h for h, c in header_counts.items() if c > 1}
+
+    if duplicates:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Duplicate headers found in Excel: {list(duplicates)}")
+
+        # Make duplicates unique by appending _col<position>
+        seen = {}
+        unique_headers = []
+        for i, h in enumerate(headers):
+            if h in duplicates:
+                if h not in seen:
+                    seen[h] = 1
+                    unique_headers.append(f"{h}_col{i}")
+                else:
+                    unique_headers.append(f"{h}_col{i}")
+            else:
+                unique_headers.append(h)
+
+        headers = unique_headers
+        logger.warning("Renamed duplicate headers with column positions")
+
     num_cols = len(headers)
 
     # Read data rows

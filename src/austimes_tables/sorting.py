@@ -28,12 +28,29 @@ def sort_by_primary_keys(df: pd.DataFrame, primary_keys: list[str]) -> pd.DataFr
 
     df_sorted = df.copy()
 
-    for pk in primary_keys:
+    # Filter primary keys to only those present in the DataFrame
+    valid_pks = [pk for pk in primary_keys if pk in df_sorted.columns]
+
+    if not valid_pks:
+        # No valid primary keys found, return unsorted
+        return df_sorted
+
+    # Log warning if some PKs are missing
+    missing_pks = set(primary_keys) - set(valid_pks)
+    if missing_pks:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"Primary keys {missing_pks} not found in DataFrame columns, using {valid_pks}"
+        )
+
+    for pk in valid_pks:
         df_sorted[pk] = df_sorted[pk].astype(str).replace("nan", pd.NA).replace("<NA>", pd.NA)
 
-    df_sorted = df_sorted.sort_values(by=primary_keys, kind="stable", na_position="last")
+    df_sorted = df_sorted.sort_values(by=valid_pks, kind="stable", na_position="last")
 
-    for pk in primary_keys:
+    for pk in valid_pks:
         df_sorted[pk] = df_sorted[pk].fillna("")
 
     return df_sorted

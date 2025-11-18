@@ -58,15 +58,30 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
     # Initialize schema
     schema = VedaSchema()
 
-    # Find all Excel workbooks in deck_root and SupplXLS/
+    # Find all Excel workbooks following VEDA naming conventions
     workbook_paths = []
+
+    # Root directory: all .xlsx/.xls files
     workbook_paths.extend(deck_path.glob("*.xlsx"))
     workbook_paths.extend(deck_path.glob("*.xls"))
 
-    suppl_dir = deck_path / "SupplXLS"
-    if suppl_dir.exists():
-        workbook_paths.extend(suppl_dir.glob("*.xlsx"))
-        workbook_paths.extend(suppl_dir.glob("*.xls"))
+    # SuppXLS/: files prefixed with "Scen_"
+    suppxls_dir = deck_path / "SuppXLS"
+    if suppxls_dir.exists():
+        workbook_paths.extend(suppxls_dir.glob("Scen_*.xlsx"))
+        workbook_paths.extend(suppxls_dir.glob("Scen_*.xls"))
+
+    # SuppXLS/Trades/: files prefixed with "Scen"
+    trades_dir = deck_path / "SuppXLS" / "Trades"
+    if trades_dir.exists():
+        workbook_paths.extend(trades_dir.glob("Scen*.xlsx"))
+        workbook_paths.extend(trades_dir.glob("Scen*.xls"))
+
+    # SubRES_Tmpl/: files prefixed with "SubRES_"
+    subres_dir = deck_path / "SubRES_Tmpl"
+    if subres_dir.exists():
+        workbook_paths.extend(subres_dir.glob("SubRES_*.xlsx"))
+        workbook_paths.extend(subres_dir.glob("SubRES_*.xls"))
 
     # Process each workbook
     for workbook_path in sorted(workbook_paths):

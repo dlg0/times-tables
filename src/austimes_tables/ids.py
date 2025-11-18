@@ -47,10 +47,14 @@ def generate_table_id(
     """
     tag_upper = tag_type.upper()
 
+    # Normalize sheet name and logical name for filesystem safety
+    sheet_safe = _normalize_name(sheet_name)
+
     if logical_name:
-        return f"{workbook_id}__{sheet_name}__{tag_upper}__{logical_name}"
+        logical_safe = _normalize_name(logical_name)
+        return f"{workbook_id}__{sheet_safe}__{tag_upper}__{logical_safe}"
     else:
-        return f"{workbook_id}__{sheet_name}__{tag_upper}"
+        return f"{workbook_id}__{sheet_safe}__{tag_upper}"
 
 
 def _normalize_name(name: str) -> str:

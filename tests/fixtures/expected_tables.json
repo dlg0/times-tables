@@ -6,7 +6,7 @@
       "filename": "VT_BaseYear.xlsx",
       "tables": [
         {
-          "table_id": "VT_BaseYear__Processes__FI_PROCESS",
+          "table_id": "VT_BaseYear__processes__FI_PROCESS",
           "sheet_name": "Processes",
           "tag": "~FI_PROCESS",
           "logical_name": null,
@@ -23,7 +23,7 @@
           ]
         },
         {
-          "table_id": "VT_BaseYear__Commodities__FI_COMM",
+          "table_id": "VT_BaseYear__commodities__FI_COMM",
           "sheet_name": "Commodities",
           "tag": "~FI_COMM",
           "logical_name": null,
@@ -39,7 +39,7 @@
           ]
         },
         {
-          "table_id": "VT_BaseYear__Parameters__FI_T__BaseParameters",
+          "table_id": "VT_BaseYear__parameters__FI_T__baseparameters",
           "sheet_name": "Parameters",
           "tag": "~FI_T",
           "logical_name": "BaseParameters",
@@ -67,7 +67,7 @@
       "filename": "SysSettings.xlsx",
       "tables": [
         {
-          "table_id": "SysSettings__Settings__STARTYEAR",
+          "table_id": "SysSettings__settings__STARTYEAR",
           "sheet_name": "Settings",
           "tag": "~STARTYEAR",
           "logical_name": null,
@@ -76,7 +76,7 @@
           "note": "Single-value tag, no tabular data"
         },
         {
-          "table_id": "SysSettings__Settings__ENDYEAR",
+          "table_id": "SysSettings__settings__ENDYEAR",
           "sheet_name": "Settings",
           "tag": "~ENDYEAR",
           "logical_name": null,
@@ -85,7 +85,7 @@
           "note": "Single-value tag, no tabular data"
         },
         {
-          "table_id": "SysSettings__Settings__ACTIVEPDEF",
+          "table_id": "SysSettings__settings__ACTIVEPDEF",
           "sheet_name": "Settings",
           "tag": "~ACTIVEPDEF",
           "logical_name": null,
@@ -94,7 +94,7 @@
           "note": "Single-value tag, no tabular data"
         },
         {
-          "table_id": "SysSettings__Regions__BOOK_REGIONS",
+          "table_id": "SysSettings__regions__BOOK_REGIONS",
           "sheet_name": "Regions",
           "tag": "~BOOK_REGIONS",
           "logical_name": null,

@@ -38,7 +38,7 @@ class TestTableID:
     """Test table_id generation from metadata."""
 
     def test_table_id_with_logical_name(self):
-        """table_id with logical name should use workbook__sheet__type__name format."""
+        """table_id with logical name should use workbook__sheet__type__name format (normalized)."""
         wid = generate_workbook_id("tests/fixtures/sample_deck/VT_BaseYear.xlsx")
         tid = generate_table_id(
             tag_type="fi_t",
@@ -47,8 +47,8 @@ class TestTableID:
             sheet_name="Parameters",
             tag_position="B5",
         )
-        # Format: workbook_id__sheet_name__TAG_TYPE__logical_name
-        assert tid == "VT_BaseYear__Parameters__FI_T__BaseParameters"
+        # Format: workbook_id__sheet_name__TAG_TYPE__logical_name (all normalized to lowercase)
+        assert tid == "VT_BaseYear__parameters__FI_T__baseparameters"
 
     def test_deterministic_table_id(self):
         """Same inputs should generate same table_id."""
@@ -70,7 +70,7 @@ class TestTableID:
         assert tid1 == tid2
 
     def test_table_id_without_logical_name(self):
-        """table_id without logical name should use workbook__sheet__type format."""
+        """table_id without logical name should use workbook__sheet__type format (normalized)."""
         wid = generate_workbook_id("tests/fixtures/sample_deck/VT_BaseYear.xlsx")
         tid = generate_table_id(
             tag_type="fi_process",
@@ -80,11 +80,11 @@ class TestTableID:
             tag_position="A1",
             veda_tag_text="~FI_PROCESS",
         )
-        # Format without logical name: workbook_id__sheet_name__TAG_TYPE
-        assert tid == "VT_BaseYear__Processes__FI_PROCESS"
+        # Format without logical name: workbook_id__sheet_name__TAG_TYPE (sheet normalized)
+        assert tid == "VT_BaseYear__processes__FI_PROCESS"
 
-    def test_name_normalization_case_preserved(self):
-        """Logical names preserve case (no normalization in current impl)."""
+    def test_name_normalization_case_converted(self):
+        """Logical names are normalized to lowercase."""
         wid = generate_workbook_id("tests/fixtures/sample_deck/VT_BaseYear.xlsx")
         tid_upper = generate_table_id(
             tag_type="fi_t",
@@ -100,13 +100,13 @@ class TestTableID:
             sheet_name="Sheet1",
             tag_position="A1",
         )
-        # Case is preserved, so these should be different
-        assert tid_upper != tid_lower
-        assert tid_upper == "VT_BaseYear__Sheet1__FI_T__UPPERCASE_NAME"
-        assert tid_lower == "VT_BaseYear__Sheet1__FI_T__uppercase_name"
+        # Case is normalized, so these should be the same
+        assert tid_upper == tid_lower
+        assert tid_upper == "VT_BaseYear__sheet1__FI_T__uppercase_name"
+        assert tid_lower == "VT_BaseYear__sheet1__FI_T__uppercase_name"
 
-    def test_name_whitespace_preserved(self):
-        """Whitespace in logical names is preserved (no normalization)."""
+    def test_name_whitespace_normalized(self):
+        """Whitespace in logical names is collapsed and converted to underscores."""
         wid = generate_workbook_id("tests/fixtures/sample_deck/VT_BaseYear.xlsx")
         tid1 = generate_table_id(
             tag_type="fi_t",
@@ -122,10 +122,9 @@ class TestTableID:
             sheet_name="Sheet1",
             tag_position="A1",
         )
-        # Whitespace is preserved, so different whitespace = different IDs
-        assert tid1 != tid2
-        assert "Multi  Space   Name" in tid1
-        assert "Multi Space Name" in tid2
+        # Whitespace is normalized, so different whitespace = same ID
+        assert tid1 == tid2
+        assert tid1 == "VT_BaseYear__sheet1__FI_T__multi_space_name"
 
     def test_stable_across_position_moves(self):
         """ID is stable across position moves within same sheet."""
@@ -175,8 +174,8 @@ class TestTableID:
             tag_position="A1",
         )
         assert tid_fi_t != tid_fi_process
-        assert tid_fi_t == "VT_BaseYear__Sheet1__FI_T__Parameters"
-        assert tid_fi_process == "VT_BaseYear__Sheet1__FI_PROCESS__Parameters"
+        assert tid_fi_t == "VT_BaseYear__sheet1__FI_T__parameters"
+        assert tid_fi_process == "VT_BaseYear__sheet1__FI_PROCESS__parameters"
 
     def test_different_logical_names_different_ids(self):
         """Different logical names should generate different table_ids."""
@@ -239,10 +238,10 @@ class TestTableID:
         )
         # Current impl doesn't use veda_tag_text, so these are the same
         assert tid1 == tid2
-        assert tid1 == "VT_BaseYear__Processes__FI_PROCESS"
+        assert tid1 == "VT_BaseYear__processes__FI_PROCESS"
 
     def test_special_characters_in_logical_name(self):
-        """Special characters in logical name are preserved (no normalization)."""
+        """Special characters in logical name are normalized to underscores."""
         wid = generate_workbook_id("tests/fixtures/sample_deck/VT_BaseYear.xlsx")
         tid = generate_table_id(
             tag_type="fi_t",
@@ -251,5 +250,5 @@ class TestTableID:
             sheet_name="Sheet1",
             tag_position="A1",
         )
-        # Current impl preserves special chars in logical name
-        assert tid == "VT_BaseYear__Sheet1__FI_T__Table-With/Special:Chars!"
+        # Special chars are converted to underscores, lowercase applied
+        assert tid == "VT_BaseYear__sheet1__FI_T__table_with_special_chars_"

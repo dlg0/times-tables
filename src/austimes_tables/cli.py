@@ -220,7 +220,7 @@ Examples:
             console.print(f"[green]✓[/green] Extracted {len(index.tables)} tables")
             return 0
         except Exception as e:
-            console.print(f"[red]Error:[/red] {e}", file=sys.stderr)
+            console.print(f"[red]Error:[/red] {e}")
             if args.verbose:
                 import traceback
 
