@@ -1,0 +1,150 @@
+PRD: AusTIMES VEDA Table CLI
+
+1. PURPOSE
+Provide a CLI tool to extract, validate, diff, and generate HTML reports for VEDA-TIMES input tables. Enables a Git-friendly workflow by creating canonical CSV “shadow tables” alongside Excel input decks. Provides structured row-level diffs and a rich HTML diff viewer. 
+
+2. INPUT DECK LAYOUT
+A VEDA-TIMES deck has the standard layout:
+  VT_*.xlsx
+  SysSettings.xlsx
+  BY_Trans.xlsx
+  SupplXLS/*.xlsx
+Shadow CSVs live in: deck_root/shadow/tables
+Metadata lives in: deck_root/shadow/meta
+
+3. SHADOW CSV ORGANIZATION
+Each workbook becomes a “workbook_id”. Each VEDA table becomes a stable “table_id” derived from:
+  - Table type (FI_T, UC_T, etc.)
+  - Logical name parsed from VEDA tag (~FI_T: MyName)
+  - If absent, fallback: hash(workbook/sheet/tag)
+Tables are written to:
+  shadow/tables/<workbook_id>/<table_id>.csv
+Metadata index written to:
+  shadow/meta/tables_index.json
+
+4. SCHEMA INTEGRATION
+Schemas not defined in YAML. Instead, CLI integrates with xl2times (or wrapper module) to obtain:
+  - Table type definition
+  - Expected columns
+  - Primary key columns
+  - Column order
+  - Basic semantic rules (if exposed)
+
+5. CLI COMMANDS
+
+5.1 extract
+Usage:
+  austimes-tables extract /path/to/deck_root
+Detects all *.xlsx files in deck and SupplXLS. Extracts VEDA tables with xl2times. Writes canonical CSVs and updates tables_index.json.
+
+5.2 format
+Usage:
+  austimes-tables format /path/to/deck_root
+Canonical sorting by primary key. Canonical column order. Normalised CSV output for stable diffs.
+
+5.3 validate
+Usage:
+  austimes-tables validate /path/to/deck_root
+Uses schema from xl2times. Checks required columns, primary key completeness, basic type safety. Nonzero exit code on failure.
+
+5.4 diff
+Usage:
+  austimes-tables diff deckA deckB
+Computes structured diffs using shadow directory:
+
+- Tables added / removed / common
+- Column add/remove detection
+- Row-level diffing:
+    * added rows (right-only)
+    * removed rows (left-only)
+    * changed rows (value differences)
+Missing columns treated as NULL for diff alignment.
+
+5.5 report (HTML)
+Usage:
+  austimes-tables report deckA deckB --output diff.html
+Produces self-contained HTML diff report with:
+  - Deck summary
+  - Workbook sections (accordion)
+  - Sheet subsections
+  - Table subsections
+  - Summary of added/removed/changed rows
+  - Color-coded row diffs
+  - Column additions/removals highlighted
+  - Search/filter via inline JS
+  - No external dependencies (inline CSS/JS)
+
+6. HTML DIFF STRUCTURE
+
+6.1 Scenario Summary
+- Deck A, Deck B names
+- Number of changed workbooks
+- Number of changed tables
+- Timestamp
+
+6.2 Workbook Level
+Grouped by workbook_id:
+- List of tables added/removed/changed
+- Organized by sheet name
+- Detect if table moved between sheets
+
+6.3 Table Level
+For each table:
+- table_id, table_type, logical_name
+- Workbook and sheet names
+- Added / removed columns
+- Added / removed / changed row counts
+- Detailed row diff:
+    For added/removed:
+      | PK columns… | row values… |
+    For changed:
+      | PK | column | left | right |
+
+7. STABLE IDENTIFIERS
+
+7.1 table_id rules
+Must remain stable even if:
+  - Table is moved within sheet
+  - Sheet moves in workbook
+  - Range of table changes
+table_id = table_type + "__" + normalized logical name
+If name missing:
+  table_id = table_type + "__" + hash(veda_tag_text)
+
+7.2 workbook_id rules
+- Derived from filename without extension
+- For SupplXLS: prefix with SupplXLS_
+
+8. NON-FUNCTIONAL REQUIREMENTS
+- Must support large tables (up to ~200k rows)
+- Diffs must complete in seconds–tens of seconds
+- Deterministic: stable outputs for same input
+- Runs on macOS/Linux/Windows
+- Python 3.10+
+
+9. CI PIPELINE INTEGRATION
+Typical flow:
+  austimes-tables extract deck/
+  austimes-tables format deck/
+  austimes-tables validate deck/
+  austimes-tables report main_deck/ pr_deck/ --output diff.html
+Upload diff.html as build artifact.
+
+10. ROADMAP
+Phase 1:
+  extract, format, validate, diff, basic HTML report
+Phase 2:
+  advanced HTML UI (folding sections, search)
+  deeper xl2times schema integration
+Phase 3:
+  LLM-assisted summary + validation assistance
+  Web UI editor
+  Optional Excel export
+
+11. ACCEPTANCE CRITERIA
+- CLI extracts consistent shadow tables from VEDA deck
+- format produces deterministic CSVs
+- validate enforces schema shape
+- diff detects row and column changes
+- report generates complete HTML output matching workbook/sheet/table structure
+- Table IDs remain stable despite table moves

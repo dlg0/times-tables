@@ -1,0 +1,117 @@
+{
+  "description": "Expected extraction metadata for test fixtures",
+  "workbooks": [
+    {
+      "workbook_id": "VT_BaseYear",
+      "filename": "VT_BaseYear.xlsx",
+      "tables": [
+        {
+          "table_id": "VT_BaseYear__Processes__FI_PROCESS",
+          "sheet_name": "Processes",
+          "tag": "~FI_PROCESS",
+          "logical_name": null,
+          "expected_columns": [
+            "TechName",
+            "TechDesc",
+            "Sets",
+            "PrimaryCG",
+            "Region"
+          ],
+          "expected_row_count": 3,
+          "expected_primary_key": [
+            "TechName"
+          ]
+        },
+        {
+          "table_id": "VT_BaseYear__Commodities__FI_COMM",
+          "sheet_name": "Commodities",
+          "tag": "~FI_COMM",
+          "logical_name": null,
+          "expected_columns": [
+            "CommName",
+            "CommDesc",
+            "CSet",
+            "CTSLvl"
+          ],
+          "expected_row_count": 3,
+          "expected_primary_key": [
+            "CommName"
+          ]
+        },
+        {
+          "table_id": "VT_BaseYear__Parameters__FI_T__BaseParameters",
+          "sheet_name": "Parameters",
+          "tag": "~FI_T",
+          "logical_name": "BaseParameters",
+          "expected_columns": [
+            "Region",
+            "TechName",
+            "Attribute",
+            "Commodity",
+            "2020",
+            "2025",
+            "2030"
+          ],
+          "expected_row_count": 7,
+          "expected_primary_key": [
+            "Region",
+            "TechName",
+            "Attribute",
+            "Commodity"
+          ]
+        }
+      ]
+    },
+    {
+      "workbook_id": "SysSettings",
+      "filename": "SysSettings.xlsx",
+      "tables": [
+        {
+          "table_id": "SysSettings__Settings__STARTYEAR",
+          "sheet_name": "Settings",
+          "tag": "~STARTYEAR",
+          "logical_name": null,
+          "expected_columns": [],
+          "expected_row_count": 1,
+          "note": "Single-value tag, no tabular data"
+        },
+        {
+          "table_id": "SysSettings__Settings__ENDYEAR",
+          "sheet_name": "Settings",
+          "tag": "~ENDYEAR",
+          "logical_name": null,
+          "expected_columns": [],
+          "expected_row_count": 1,
+          "note": "Single-value tag, no tabular data"
+        },
+        {
+          "table_id": "SysSettings__Settings__ACTIVEPDEF",
+          "sheet_name": "Settings",
+          "tag": "~ACTIVEPDEF",
+          "logical_name": null,
+          "expected_columns": [],
+          "expected_row_count": 1,
+          "note": "Single-value tag, no tabular data"
+        },
+        {
+          "table_id": "SysSettings__Regions__BOOK_REGIONS",
+          "sheet_name": "Regions",
+          "tag": "~BOOK_REGIONS",
+          "logical_name": null,
+          "expected_columns": [
+            "Region"
+          ],
+          "expected_row_count": 2,
+          "expected_primary_key": [
+            "Region"
+          ]
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_workbooks": 2,
+    "total_tables": 7,
+    "total_data_rows": 15
+  }
+}

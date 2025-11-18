@@ -1,0 +1,7 @@
+ID,Name,Description
+1,Simple,No special chars
+2,"With, comma",Contains comma
+3,With space,No quotes needed
+4,"With ""quotes""",Contains quotes
+5,"With
+newline",Contains newline

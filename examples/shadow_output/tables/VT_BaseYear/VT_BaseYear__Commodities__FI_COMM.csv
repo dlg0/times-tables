@@ -1,0 +1,4 @@
+commodity,description,csets,ctslvl
+COA,Coal,NRG,PRI
+ELC,Electricity,NRG,PRE
+GAS,Natural Gas,NRG,PRI

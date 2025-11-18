@@ -1,0 +1,4 @@
+process,description,sets,primarycg,region
+ELCCOA01,Coal power plant,ELE,ELC,REG1
+ELCGAS01,Gas power plant,ELE,ELC,REG1
+ELCWIN01,Wind turbine,"ELE,RNW",ELC,REG2

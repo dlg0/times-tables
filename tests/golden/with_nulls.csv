@@ -1,0 +1,4 @@
+Region,Process,Value,Comment
+A,PROC1,100.0,Initial value
+B,PROC2,,Missing data
+C,PROC3,300.5,
