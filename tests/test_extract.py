@@ -11,6 +11,7 @@ import openpyxl
 import pandas as pd
 import pytest
 
+from austimes_tables import excel
 from austimes_tables.extract import extract_table
 from austimes_tables.scanner import scan_workbook
 from austimes_tables.veda import VedaSchema
@@ -177,12 +178,15 @@ def test_extract_table_basic(schema):
     wb_path = save_temp_workbook(wb)
 
     try:
+        # Load workbook once
+        workbook = excel.load_workbook(wb_path)
+
         # Scan to get table metadata
-        tables = scan_workbook(wb_path)
+        tables = scan_workbook(workbook)
         assert len(tables) == 1
 
         # Extract table
-        df = extract_table(wb_path, tables[0], schema)
+        df = extract_table(workbook, tables[0], schema)
 
         # Verify shape
         assert df.shape == (2, 3)
@@ -219,8 +223,9 @@ def test_extract_normalizes_column_aliases(schema):
     wb_path = save_temp_workbook(wb)
 
     try:
-        tables = scan_workbook(wb_path)
-        df = extract_table(wb_path, tables[0], schema)
+        workbook = excel.load_workbook(wb_path)
+        tables = scan_workbook(workbook)
+        df = extract_table(workbook, tables[0], schema)
 
         # Verify columns are normalized to lowercase canonical names
         assert "region" in df.columns
@@ -254,8 +259,9 @@ def test_extract_handles_empty_cells(schema):
     wb_path = save_temp_workbook(wb)
 
     try:
-        tables = scan_workbook(wb_path)
-        df = extract_table(wb_path, tables[0], schema)
+        workbook = excel.load_workbook(wb_path)
+        tables = scan_workbook(workbook)
+        df = extract_table(workbook, tables[0], schema)
 
         # Verify None handling
         assert df.iloc[0]["process"] is None or pd.isna(df.iloc[0]["process"])
@@ -292,8 +298,9 @@ def test_extract_preserves_row_order(schema):
     wb_path = save_temp_workbook(wb)
 
     try:
-        tables = scan_workbook(wb_path)
-        df = extract_table(wb_path, tables[0], schema)
+        workbook = excel.load_workbook(wb_path)
+        tables = scan_workbook(workbook)
+        df = extract_table(workbook, tables[0], schema)
 
         # Verify order matches Excel row order (not sorted)
         assert df.iloc[0]["region"] == "ZZZ"
@@ -310,13 +317,14 @@ def test_extract_multiple_tables(schema, multiple_tables_workbook):
 
     try:
         # Scan to get all tables
-        tables = scan_workbook(wb_path)
+        workbook = excel.load_workbook(wb_path)
+        tables = scan_workbook(workbook)
         assert len(tables) == 3
 
         # Extract each table
         dfs = []
         for table_meta in tables:
-            df = extract_table(wb_path, table_meta, schema)
+            df = extract_table(workbook, table_meta, schema)
             dfs.append(df)
 
         # Verify all extracted correctly
@@ -357,8 +365,9 @@ def test_extract_sheet_not_found(schema):
         }
 
         # Should raise ValueError
+        workbook = excel.load_workbook(wb_path)
         with pytest.raises(ValueError, match="Sheet 'DoesNotExist' not found"):
-            extract_table(wb_path, fake_meta, schema)
+            extract_table(workbook, fake_meta, schema)
 
     finally:
         Path(wb_path).unlink(missing_ok=True)
@@ -384,8 +393,9 @@ def test_extract_whitespace_stripping(schema):
     wb_path = save_temp_workbook(wb)
 
     try:
-        tables = scan_workbook(wb_path)
-        df = extract_table(wb_path, tables[0], schema)
+        workbook = excel.load_workbook(wb_path)
+        tables = scan_workbook(workbook)
+        df = extract_table(workbook, tables[0], schema)
 
         # Verify whitespace is stripped
         assert df.iloc[0]["region"] == "AUS"
@@ -415,8 +425,9 @@ def test_extract_numeric_precision_preserved(schema):
     wb_path = save_temp_workbook(wb)
 
     try:
-        tables = scan_workbook(wb_path)
-        df = extract_table(wb_path, tables[0], schema)
+        workbook = excel.load_workbook(wb_path)
+        tables = scan_workbook(workbook)
+        df = extract_table(workbook, tables[0], schema)
 
         # All values should be strings
         for val in df["year"]:
@@ -444,10 +455,11 @@ def test_extract_empty_table_no_data_rows(schema):
     wb_path = save_temp_workbook(wb)
 
     try:
-        tables = scan_workbook(wb_path)
+        workbook = excel.load_workbook(wb_path)
+        tables = scan_workbook(workbook)
         assert len(tables) == 1
 
-        df = extract_table(wb_path, tables[0], schema)
+        df = extract_table(workbook, tables[0], schema)
 
         # Should have columns but no rows
         assert df.shape == (0, 2)
@@ -464,8 +476,9 @@ def test_extract_with_fixture(schema):
     if not fixture_path.exists():
         pytest.skip(f"Fixture not found: {fixture_path}")
 
-    # Scan and extract
-    tables = scan_workbook(str(fixture_path))
+    # Load workbook and scan
+    workbook = excel.load_workbook(str(fixture_path))
+    tables = scan_workbook(workbook)
 
     if len(tables) == 0:
         pytest.skip("No tables found in fixture")
@@ -473,7 +486,7 @@ def test_extract_with_fixture(schema):
     # Find a table with headers (skip empty tables)
     df = None
     for table in tables:
-        test_df = extract_table(str(fixture_path), table, schema)
+        test_df = extract_table(workbook, table, schema)
         if len(test_df.columns) > 0:
             df = test_df
             break
