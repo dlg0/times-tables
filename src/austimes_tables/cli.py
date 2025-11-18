@@ -6,8 +6,9 @@ import sys
 
 from rich.console import Console
 from rich.logging import RichHandler
+from rich_argparse import RichHelpFormatter
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 console = Console()
 
@@ -18,6 +19,7 @@ def main():
         prog="times-tables",
         description="Git-friendly CLI for extracting, validating, and diffing VEDA-TIMES tables",
         epilog="For detailed documentation, see: https://github.com/dlg0/times-tables",
+        formatter_class=RichHelpFormatter,
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
