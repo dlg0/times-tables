@@ -45,16 +45,15 @@ def generate_table_id(
     Returns:
         Deterministic table identifier
     """
-    tag_upper = tag_type.upper()
-
-    # Normalize sheet name and logical name for filesystem safety
+    # Normalize tag_type, sheet_name, and logical_name for filesystem safety
+    tag_safe = _normalize_name(tag_type).upper()
     sheet_safe = _normalize_name(sheet_name)
 
     if logical_name:
         logical_safe = _normalize_name(logical_name)
-        return f"{workbook_id}__{sheet_safe}__{tag_upper}__{logical_safe}"
+        return f"{workbook_id}__{sheet_safe}__{tag_safe}__{logical_safe}"
     else:
-        return f"{workbook_id}__{sheet_safe}__{tag_upper}"
+        return f"{workbook_id}__{sheet_safe}__{tag_safe}"
 
 
 def _normalize_name(name: str) -> str:

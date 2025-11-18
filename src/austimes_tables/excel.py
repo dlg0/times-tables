@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import openpyxl
+from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 
 
@@ -47,19 +48,20 @@ def find_tags(sheet: Worksheet) -> list[dict]:
     """
     tags = []
 
-    for row in sheet.iter_rows():
-        for cell in row:
-            if cell.value is not None:
-                cell_str = str(cell.value).strip()
-                if cell_str.startswith("~"):
-                    tags.append(
-                        {
-                            "row": cell.row,
-                            "col": cell.column,
-                            "value": cell_str,
-                            "cell_ref": cell.coordinate,
-                        }
-                    )
+    for r_idx, row in enumerate(sheet.iter_rows(values_only=True), start=1):
+        for c_idx, value in enumerate(row, start=1):
+            if value is None:
+                continue
+            cell_str = str(value).strip()
+            if cell_str.startswith("~"):
+                tags.append(
+                    {
+                        "row": r_idx,
+                        "col": c_idx,
+                        "value": cell_str,
+                        "cell_ref": f"{get_column_letter(c_idx)}{r_idx}",
+                    }
+                )
 
     return tags
 

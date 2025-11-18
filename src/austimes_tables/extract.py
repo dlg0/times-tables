@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 import pandas as pd
+from openpyxl import Workbook
 
 from austimes_tables import excel
 from austimes_tables.veda import VedaSchema
@@ -16,12 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 def extract_table(
-    workbook_path: str, table_meta: dict[str, Any], schema: VedaSchema
+    workbook: Workbook, table_meta: dict[str, Any], schema: VedaSchema
 ) -> pd.DataFrame:
     """Extract a VEDA table to a pandas DataFrame.
 
     Args:
-        workbook_path: Path to Excel workbook file
+        workbook: openpyxl Workbook object
         table_meta: Table metadata from scanner.scan_workbook()
         schema: VedaSchema instance for column name normalization
 
@@ -31,15 +32,12 @@ def extract_table(
     Raises:
         ValueError: If sheet not found or columns don't match schema
     """
-    # Load workbook
-    workbook = excel.load_workbook(workbook_path)
 
     # Get sheet by name
     sheet_name = table_meta["sheet_name"]
     if sheet_name not in workbook.sheetnames:
         raise ValueError(
-            f"Sheet '{sheet_name}' not found in workbook {workbook_path}. "
-            f"Available sheets: {workbook.sheetnames}"
+            f"Sheet '{sheet_name}' not found in workbook. Available sheets: {workbook.sheetnames}"
         )
 
     sheet = workbook[sheet_name]
@@ -94,36 +92,14 @@ def _normalize_values(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with normalized string values
     """
-    # Convert all values to strings, handling None/NaN
-    result_df = df.copy()
-
-    for col in result_df.columns:
-        result_df[col] = result_df[col].apply(_normalize_cell_value)
-
-    return result_df
-
-
-def _normalize_cell_value(value: Any) -> str | None:
-    """Normalize a single cell value.
-
-    Args:
-        value: Cell value (any type)
-
-    Returns:
-        Normalized string value or None for empty cells
-    """
-    # Handle None and NaN
-    if value is None or (isinstance(value, float) and pd.isna(value)):
-        return None
-
-    # Convert to string
-    str_value = str(value)
-
-    # Strip whitespace
-    str_value = str_value.strip()
-
-    # Return None for empty strings
-    if not str_value:
-        return None
-
-    return str_value
+    result = df.copy()
+    for col in result.columns:
+        s = result[col]
+        # Keep nulls as nulls
+        mask = s.notna()
+        # Convert only non-nulls to str and strip
+        s2 = s.where(~mask, s.astype(str).str.strip())
+        # Empty strings -> None
+        s2 = s2.mask(s2 == "", None)
+        result[col] = s2
+    return result

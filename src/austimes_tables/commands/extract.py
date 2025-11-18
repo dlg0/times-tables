@@ -1,13 +1,15 @@
 """Extract command implementation - orchestrates full extraction workflow."""
 
-import hashlib
 import logging
+import time
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
+from rich.table import Table
 
-from austimes_tables import extract, ids, scanner
+from austimes_tables import excel, extract, ids, scanner
 from austimes_tables.csvio import write_deterministic_csv
 from austimes_tables.index import TablesIndexIO
 from austimes_tables.models import TableMeta, TablesIndex, WorkbookMeta
@@ -32,6 +34,8 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
         FileNotFoundError: If deck_root doesn't exist
         ValueError: If extraction fails for any table
     """
+    start_time = time.time()
+
     deck_path = Path(deck_root).resolve()
     if not deck_path.exists():
         raise FileNotFoundError(f"Deck root not found: {deck_root}")
@@ -54,6 +58,25 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
 
     # Initialize index
     index = TablesIndexIO.create_empty(generator="austimes-tables/0.1.0")
+
+    # Track stats for summary
+    workbook_stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "time": 0.0}))
+
+    # Load previous index if exists (for incremental skip)
+    index_path = meta_dir / "tables_index.json"
+    prev_index = None
+    if index_path.exists():
+        try:
+            prev_index = TablesIndexIO.read(str(index_path))
+        except Exception as e:
+            logger.warning(f"Failed to load previous index: {e}")
+
+    # Build lookup for previous workbooks by (source_path, hash)
+    prev_workbooks = {}
+    if prev_index:
+        for wb in prev_index.workbooks.values():
+            key = (wb.source_path, wb.hash)
+            prev_workbooks[key] = wb.workbook_id
 
     # Initialize schema
     schema = VedaSchema()
@@ -85,14 +108,7 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
 
     # Process each workbook
     for workbook_path in sorted(workbook_paths):
-        console.print(f"[cyan]Scanning[/cyan] {workbook_path.name}...")
-
-        # Generate workbook_id (hash of file content)
-        workbook_id = ids.generate_workbook_id(str(workbook_path))
-
-        # Compute workbook hash (SHA256)
-        with open(workbook_path, "rb") as f:
-            workbook_hash = hashlib.sha256(f.read()).hexdigest()
+        workbook_start_time = time.time()
 
         # Compute relative path from deck_root
         try:
@@ -101,15 +117,57 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
             # If not relative to deck_path, use absolute
             relative_path = workbook_path
 
+        # Compute workbook hash (SHA256) using chunked hashing
+        workbook_hash = excel.hash_workbook(str(workbook_path))
+        hash_key = f"sha256:{workbook_hash}"
+
+        # Check if workbook is unchanged from previous run
+        prev_key = (str(relative_path), hash_key)
+        if prev_key in prev_workbooks:
+            # Workbook unchanged - reuse previous metadata
+            prev_workbook_id = prev_workbooks[prev_key]
+
+            # Copy workbook metadata
+            prev_wb = prev_index.workbooks.get(prev_workbook_id)
+            if prev_wb:
+                index.add_workbook(prev_wb)
+
+                # Copy all table metadata for this workbook
+                for table in prev_index.tables.values():
+                    if table.workbook_id == prev_workbook_id:
+                        # Verify CSV file still exists
+                        csv_full_path = shadow_dir / table.csv_path
+                        if csv_full_path.exists():
+                            index.add_table(table)
+                        else:
+                            logger.warning(f"CSV missing for {table.table_id}, will re-extract")
+                            break
+                else:
+                    # All tables verified, skip this workbook
+                    console.print(f"[dim]⊙ Skipped {workbook_path.name} (unchanged)[/dim]")
+                    continue
+
+        console.print(f"[cyan]Scanning[/cyan] {workbook_path.name}...")
+
+        # Generate workbook_id (hash of file content)
+        workbook_id = ids.generate_workbook_id(str(workbook_path))
+
         # Add workbook to index
         workbook_meta = WorkbookMeta(
-            workbook_id=workbook_id, source_path=str(relative_path), hash=f"sha256:{workbook_hash}"
+            workbook_id=workbook_id, source_path=str(relative_path), hash=hash_key
         )
         index.add_workbook(workbook_meta)
 
+        # Load workbook once
+        try:
+            workbook = excel.load_workbook(str(workbook_path))
+        except Exception as e:
+            console.print(f"  [yellow]⚠[/yellow] Failed to load {workbook_path.name}: {e}")
+            continue
+
         # Scan for tables
         try:
-            tables = scanner.scan_workbook(str(workbook_path))
+            tables = scanner.scan_workbook(workbook)
         except Exception as e:
             console.print(f"  [yellow]⚠[/yellow] Failed to scan {workbook_path.name}: {e}")
             continue
@@ -138,9 +196,7 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
 
             # Extract table to DataFrame
             try:
-                df = extract.extract_table(
-                    workbook_path=str(workbook_path), table_meta=table_info, schema=schema
-                )
+                df = extract.extract_table(workbook=workbook, table_meta=table_info, schema=schema)
             except Exception as e:
                 console.print(f"  [yellow]⚠[/yellow] Failed to extract {table_id}: {e}")
                 continue
@@ -196,12 +252,52 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
             )
             index.add_table(table_meta)
 
+            # Track stats
+            workbook_stats[workbook_path.name][sheet_name]["count"] += 1
+
+        # Record workbook processing time
+        workbook_time = time.time() - workbook_start_time
+        for sheet_name in workbook_stats[workbook_path.name]:
+            workbook_stats[workbook_path.name][sheet_name]["time"] = workbook_time
+
     # Write tables_index.json
     index_path = meta_dir / "tables_index.json"
     TablesIndexIO.write(index, str(index_path))
     console.print(f"[blue]Wrote[/blue] {index_path.relative_to(deck_path)}")
 
+    # Print summary table
+    total_time = time.time() - start_time
+    _print_extraction_summary(workbook_stats, total_time)
+
     return index
+
+
+def _print_extraction_summary(workbook_stats: dict, total_time: float) -> None:
+    """Print a summary table of extraction statistics."""
+    if not workbook_stats:
+        return
+
+    console.print()
+    console.print("[bold]Extraction Summary[/bold]")
+
+    table = Table(show_header=True, header_style="bold cyan")
+    table.add_column("File", style="dim")
+    table.add_column("Sheet")
+    table.add_column("Tables", justify="right")
+    table.add_column("Time (s)", justify="right")
+
+    total_tables = 0
+    for workbook_name in sorted(workbook_stats.keys()):
+        sheets = workbook_stats[workbook_name]
+        for sheet_name in sorted(sheets.keys()):
+            count = sheets[sheet_name]["count"]
+            wb_time = sheets[sheet_name]["time"]
+            total_tables += count
+            table.add_row(workbook_name, sheet_name, str(count), f"{wb_time:.2f}")
+
+    console.print(table)
+    console.print(f"\n[bold]Total:[/bold] {total_tables} tables in {total_time:.2f}s")
+    console.print()
 
 
 def _col_to_letter(col: int) -> str:

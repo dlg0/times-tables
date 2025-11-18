@@ -10,6 +10,7 @@ from pathlib import Path
 import openpyxl
 import pytest
 
+from austimes_tables import excel
 from austimes_tables.scanner import scan_workbook
 
 
@@ -121,7 +122,8 @@ def merged_header_workbook():
 
 def test_scan_synthetic_workbook(temp_synthetic_workbook):
     """Test scanning synthetic workbook finds all tables."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # Should find 4 tables (3 in MultiTable, 1 in SingleTable, 1 in EmptyTable)
     assert len(tables) == 5
@@ -129,13 +131,15 @@ def test_scan_synthetic_workbook(temp_synthetic_workbook):
 
 def test_scan_workbook_returns_list(temp_synthetic_workbook):
     """Test scan_workbook returns a list."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
     assert isinstance(tables, list)
 
 
 def test_table_has_required_fields(temp_synthetic_workbook):
     """Test each table has required metadata fields."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     required_fields = {
         "tag",
@@ -154,7 +158,8 @@ def test_table_has_required_fields(temp_synthetic_workbook):
 
 def test_parse_tag_with_logical_name(temp_synthetic_workbook):
     """Test parsing tag with logical name."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # Find the FI_T: BaseParameters table
     base_params = [
@@ -170,7 +175,8 @@ def test_parse_tag_with_logical_name(temp_synthetic_workbook):
 
 def test_parse_tag_without_logical_name(temp_synthetic_workbook):
     """Test parsing tag without logical name."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # Find the FI_PROCESS table (no logical name)
     fi_process = [t for t in tables if t["tag"] == "~FI_PROCESS"][0]
@@ -181,7 +187,8 @@ def test_parse_tag_without_logical_name(temp_synthetic_workbook):
 
 def test_parse_tag_type_normalization(temp_synthetic_workbook):
     """Test tag types are normalized to lowercase."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     for table in tables:
         assert table["tag_type"].islower()
@@ -190,7 +197,8 @@ def test_parse_tag_type_normalization(temp_synthetic_workbook):
 
 def test_extract_sheet_name(temp_synthetic_workbook):
     """Test sheet names are correctly captured."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     sheet_names = {t["sheet_name"] for t in tables}
     assert "MultiTable" in sheet_names
@@ -201,7 +209,8 @@ def test_extract_sheet_name(temp_synthetic_workbook):
 
 def test_extract_tag_position(temp_synthetic_workbook):
     """Test tag row and column positions are captured."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # Find table with tag at B2 (row 2, col 2)
     base_params = [t for t in tables if "BaseParameters" in str(t.get("logical_name", ""))][0]
@@ -216,7 +225,8 @@ def test_extract_tag_position(temp_synthetic_workbook):
 
 def test_extract_headers(temp_synthetic_workbook):
     """Test headers are extracted correctly."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # Find FI_T: BaseParameters table
     base_params = [t for t in tables if "BaseParameters" in str(t.get("logical_name", ""))][0]
@@ -227,7 +237,8 @@ def test_extract_headers(temp_synthetic_workbook):
 
 def test_extract_headers_types(temp_synthetic_workbook):
     """Test headers are strings."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     for table in tables:
         assert isinstance(table["headers"], list)
@@ -237,7 +248,8 @@ def test_extract_headers_types(temp_synthetic_workbook):
 
 def test_count_data_rows(temp_synthetic_workbook):
     """Test data row counting."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # FI_T: BaseParameters should have 2 data rows
     base_params = [t for t in tables if "BaseParameters" in str(t.get("logical_name", ""))][0]
@@ -250,7 +262,8 @@ def test_count_data_rows(temp_synthetic_workbook):
 
 def test_empty_table_handling(temp_synthetic_workbook):
     """Test handling of table with no data rows."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # Find EmptyData table
     empty_table = [t for t in tables if "EmptyData" in str(t.get("logical_name", ""))][0]
@@ -261,7 +274,8 @@ def test_empty_table_handling(temp_synthetic_workbook):
 
 def test_multiple_tables_same_sheet(temp_synthetic_workbook):
     """Test finding multiple tables on same sheet."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     multi_table_tables = [t for t in tables if t["sheet_name"] == "MultiTable"]
     assert len(multi_table_tables) == 3
@@ -269,7 +283,8 @@ def test_multiple_tables_same_sheet(temp_synthetic_workbook):
 
 def test_tables_at_different_positions(temp_synthetic_workbook):
     """Test tables at non-A1 positions."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # Find table at F2
     commodities = [t for t in tables if "Commodities" in str(t.get("logical_name", ""))][0]
@@ -279,7 +294,8 @@ def test_tables_at_different_positions(temp_synthetic_workbook):
 
 def test_sheet_with_no_tags(temp_synthetic_workbook):
     """Test sheet with no tags produces no results."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     no_tag_tables = [t for t in tables if t["sheet_name"] == "NoTags"]
     assert len(no_tag_tables) == 0
@@ -292,7 +308,8 @@ def test_scan_real_fixture():
     if not fixture_path.exists():
         pytest.skip(f"Fixture not found: {fixture_path}")
 
-    tables = scan_workbook(str(fixture_path))
+    workbook = excel.load_workbook(str(fixture_path))
+    tables = scan_workbook(workbook)
 
     # Should find at least one table
     assert len(tables) > 0
@@ -312,7 +329,8 @@ def test_scan_real_fixture():
 
 def test_merged_header_cells(merged_header_workbook):
     """Test handling of merged cells in headers."""
-    tables = scan_workbook(merged_header_workbook)
+    workbook = excel.load_workbook(merged_header_workbook)
+    tables = scan_workbook(workbook)
 
     assert len(tables) == 1
     table = tables[0]
@@ -324,7 +342,8 @@ def test_merged_header_cells(merged_header_workbook):
 
 def test_tag_case_insensitive_parsing(temp_synthetic_workbook):
     """Test tag type parsing is case-insensitive."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     # All tag_types should be lowercase
     for table in tables:
@@ -348,7 +367,8 @@ def test_logical_name_whitespace_handling():
     wb.save(tmp_path)
 
     try:
-        tables = scan_workbook(tmp_path)
+        workbook = excel.load_workbook(tmp_path)
+        tables = scan_workbook(workbook)
         assert len(tables) == 1
         # Logical name should be trimmed
         assert tables[0]["logical_name"] == "SpacedName"
@@ -359,12 +379,13 @@ def test_logical_name_whitespace_handling():
 def test_scan_nonexistent_file():
     """Test scanning nonexistent file raises error."""
     with pytest.raises((FileNotFoundError, IOError)):
-        scan_workbook("/nonexistent/path/file.xlsx")
+        excel.load_workbook("/nonexistent/path/file.xlsx")
 
 
 def test_table_metadata_types(temp_synthetic_workbook):
     """Test all metadata fields have correct types."""
-    tables = scan_workbook(temp_synthetic_workbook)
+    workbook = excel.load_workbook(temp_synthetic_workbook)
+    tables = scan_workbook(workbook)
 
     for table in tables:
         assert isinstance(table["tag"], str)
@@ -394,7 +415,8 @@ def test_single_column_table():
     wb.save(tmp_path)
 
     try:
-        tables = scan_workbook(tmp_path)
+        workbook = excel.load_workbook(tmp_path)
+        tables = scan_workbook(workbook)
         assert len(tables) == 1
         assert tables[0]["headers"] == ["Commodity"]
         assert tables[0]["row_count"] == 3
@@ -424,7 +446,8 @@ def test_wide_table():
     wb.save(tmp_path)
 
     try:
-        tables = scan_workbook(tmp_path)
+        workbook = excel.load_workbook(tmp_path)
+        tables = scan_workbook(workbook)
         assert len(tables) == 1
         assert len(tables[0]["headers"]) == 10
         assert tables[0]["row_count"] == 1

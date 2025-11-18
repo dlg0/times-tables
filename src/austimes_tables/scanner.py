@@ -5,14 +5,16 @@ Discovers all VEDA tables in a workbook and extracts metadata.
 
 from typing import Any
 
+from openpyxl import Workbook
+
 from austimes_tables import excel
 
 
-def scan_workbook(workbook_path: str) -> list[dict[str, Any]]:
+def scan_workbook(workbook: Workbook) -> list[dict[str, Any]]:
     """Scan workbook for VEDA tags and extract table metadata.
 
     Args:
-        workbook_path: Path to Excel workbook file
+        workbook: openpyxl Workbook object
 
     Returns:
         List of table metadata dictionaries with keys:
@@ -28,7 +30,6 @@ def scan_workbook(workbook_path: str) -> list[dict[str, Any]]:
     Raises:
         FileNotFoundError: If workbook file doesn't exist
     """
-    workbook = excel.load_workbook(workbook_path)
     tables = []
 
     for sheet_name in excel.get_sheet_names(workbook):
