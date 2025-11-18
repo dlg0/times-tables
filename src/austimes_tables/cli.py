@@ -8,7 +8,11 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich_argparse import RichHelpFormatter
 
-__version__ = "0.3.0"
+try:
+    from importlib.metadata import version
+    __version__ = version("austimes-tables")
+except Exception:
+    __version__ = "unknown"
 
 console = Console()
 
