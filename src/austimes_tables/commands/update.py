@@ -57,8 +57,22 @@ def update_cli(version: str | None = None) -> int:
 
         if result.returncode == 0:
             console.print("[green]✓[/green] Successfully updated times-tables")
-            if version:
-                console.print(f"[dim]Version: {version}[/dim]")
+
+            # Get the installed version
+            try:
+                version_result = subprocess.run(
+                    ["times-tables", "--version"],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if version_result.returncode == 0:
+                    # Extract version from output like "times-tables 0.2.2"
+                    installed_version = version_result.stdout.strip().split()[-1]
+                    console.print(f"[dim]Installed version: {installed_version}[/dim]")
+            except Exception:
+                pass  # Don't fail if we can't get version
+
             return 0
         else:
             console.print("[red]Error:[/red] Update failed")
