@@ -94,11 +94,11 @@ def detect_table_bounds(sheet: Worksheet, tag_row: int, tag_col: int) -> tuple[i
         (start_col, end_col) indices (1-based), or None if no headers found
     """
     header_row = tag_row + 1
-    
+
     # Check if tag column has a header directly below it
     anchor = sheet.cell(row=header_row, column=tag_col).value
     has_header_at_tag = anchor is not None and str(anchor).strip() != ""
-    
+
     if has_header_at_tag:
         # Standard case: tag is above a header column
         start_search = tag_col
@@ -111,11 +111,11 @@ def detect_table_bounds(sheet: Worksheet, tag_row: int, tag_col: int) -> tuple[i
             if val is not None and str(val).strip() != "":
                 start_search = col
                 break
-        
+
         if start_search is None:
             # No headers found to the right of tag
             return None
-    
+
     # Now expand left and right from start_search to find contiguous header block
     # Scan Left from start position
     curr = start_search
@@ -161,7 +161,7 @@ def read_table_range(
     if bounds is None:
         # No valid table (empty cell below tag)
         return [], []
-    
+
     actual_start_col, actual_end_col = bounds
 
     # Read headers

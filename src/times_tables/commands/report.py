@@ -244,7 +244,9 @@ def generate_html(
 
         if type_ in ("removed", "modified"):
             table = index_a.tables[key]
-            base_data = read_table_data(deck_a_path, table, limit_rows, normalize_for_diff=normalize)
+            base_data = read_table_data(
+                deck_a_path, table, limit_rows, normalize_for_diff=normalize
+            )
 
         if type_ in ("added", "modified"):
             table = index_b.tables[key]
