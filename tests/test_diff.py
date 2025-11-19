@@ -4,21 +4,21 @@ import json
 
 import pytest
 
-from austimes_tables.commands.diff import _compute_diff, _load_index, diff_decks
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.models import TableMeta, TablesIndex, WorkbookMeta
+from times_tables.commands.diff import _compute_diff, _load_index, diff_decks
+from times_tables.index import TablesIndexIO
+from times_tables.models import TableMeta, TablesIndex, WorkbookMeta
 
 
 @pytest.fixture
 def empty_index():
     """Create an empty tables index."""
-    return TablesIndex.create_empty("austimes-tables/0.1.0")
+    return TablesIndex.create_empty("times-tables/0.1.0")
 
 
 @pytest.fixture
 def sample_index_a():
     """Create sample index A with 3 tables."""
-    index = TablesIndex.create_empty("austimes-tables/0.1.0")
+    index = TablesIndex.create_empty("times-tables/0.1.0")
 
     # Add workbook
     wb = WorkbookMeta(workbook_id="abc12345", source_path="workbook.xlsx", hash="sha256:abc123")
@@ -90,7 +90,7 @@ def sample_index_b():
     - table_3: unchanged
     - table_4: added
     """
-    index = TablesIndex.create_empty("austimes-tables/0.1.0")
+    index = TablesIndex.create_empty("times-tables/0.1.0")
 
     # Add workbook
     wb = WorkbookMeta(workbook_id="abc12345", source_path="workbook.xlsx", hash="sha256:abc123")
@@ -376,7 +376,7 @@ def test_diff_output_structure(sample_index_a, sample_index_b):
 def test_diff_sorted_table_ids(sample_index_a, sample_index_b):
     """Test that table IDs in diff output are sorted."""
     # Create index with multiple added/removed tables
-    index_c = TablesIndex.create_empty("austimes-tables/0.1.0")
+    index_c = TablesIndex.create_empty("times-tables/0.1.0")
     wb = WorkbookMeta(workbook_id="xyz99999", source_path="other.xlsx", hash="sha256:xyz")
     index_c.add_workbook(wb)
 

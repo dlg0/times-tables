@@ -19,7 +19,7 @@
 ```json
 {
   "version": 1,
-  "generator": "austimes-tables/0.1.0",
+  "generator": "times-tables/0.1.0",
   "generated_at": "2025-11-18T16:00:00Z",
   "workbooks": { ... },
   "tables": { ... }
@@ -31,7 +31,7 @@
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `version` | integer | ✅ | Schema version (currently `1`) |
-| `generator` | string | ✅ | Tool name and version (e.g., `"austimes-tables/0.1.0"`) |
+| `generator` | string | ✅ | Tool name and version (e.g., `"times-tables/0.1.0"`) |
 | `generated_at` | string | ✅ | ISO 8601 timestamp of index generation (UTC) |
 | `workbooks` | object | ✅ | Map of `workbook_id` → `WorkbookMeta` |
 | `tables` | object | ✅ | Map of `{workbook_id}/{table_id}` → `TableMeta` |
@@ -170,7 +170,7 @@ Maps composite table keys to table metadata.
 ```json
 {
   "version": 1,
-  "generator": "austimes-tables/0.1.0",
+  "generator": "times-tables/0.1.0",
   "generated_at": "2025-11-18T16:30:45Z",
   "workbooks": {
     "abc12345": {
@@ -280,5 +280,5 @@ Maps composite table keys to table metadata.
 ## References
 
 - [PRD: AusTIMES VEDA Table CLI](AusTIMES_VEDA_CLI_PRD.txt)
-- [Python Models](../src/austimes_tables/models.py)
-- [ID Generation](../src/austimes_tables/ids.py)
+- [Python Models](../src/times_tables/models.py)
+- [ID Generation](../src/times_tables/ids.py)

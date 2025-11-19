@@ -7,7 +7,7 @@ from typing import Any
 
 from openpyxl import Workbook
 
-from austimes_tables import excel
+from times_tables import excel
 
 
 def scan_workbook(workbook: Workbook) -> list[dict[str, Any]]:

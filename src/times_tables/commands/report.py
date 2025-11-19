@@ -308,6 +308,11 @@ def generate_html(
             display: flex;
             gap: 20px;
         }}
+        .stacked-view {{
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }}
         .panel {{
             flex: 1;
             overflow-x: auto;
@@ -319,6 +324,56 @@ def generate_html(
         .daff-del {{ background-color: #f8d7da; text-decoration: line-through; }}
         .daff-mod {{ background-color: #fff3cd; }}
         .daff-header {{ background-color: #f1f1f1; font-weight: bold; }}
+
+        /* No text wrapping in table cells */
+        .data-table {{
+            border-collapse: collapse;
+            table-layout: fixed; /* helps with explicit column widths */
+            width: 100%;
+        }}
+
+        .data-table th,
+        .data-table td {{
+            padding: 4px 8px;
+            white-space: nowrap;       /* no wrapping */
+            overflow: hidden;          /* prevents overflow when narrowed */
+            text-overflow: ellipsis;   /* optional: show "…" when content is clipped */
+            min-height: 1.5em;         /* ensure some row height */
+        }}
+
+        /* Ellipsis rows for skipped blocks */
+        .data-table .ellipsis-row td {{
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            background-color: #f0f0f0;
+        }}
+
+        /* Resize grip on right edge of each header cell */
+        .data-table th {{
+            position: relative;
+        }}
+
+        .data-table th .col-resizer {{
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+            user-select: none;
+        }}
+
+        /* Optional: visible grip */
+        .data-table th .col-resizer::after {{
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 15%;
+            width: 2px;
+            height: 70%;
+            background-color: rgba(0,0,0,0.2);
+        }}
     </style>
     <script>
         {daff_js}
@@ -457,18 +512,63 @@ def generate_html(
                 return table;
             }
 
-            function renderView(container, key, mode) {
-                container.innerHTML = '';
-                const data = tableData[key];
-                if (!data) {
-                    container.textContent = 'Error loading data.';
-                    return;
+            function makeColumnsResizable(table) {
+                const ths = table.querySelectorAll('thead th');
+                if (!ths.length) return;
+
+                let startX, startWidth, currentTh;
+
+                function onMouseMove(e) {
+                    if (!currentTh) return;
+                    const dx = e.pageX - startX;
+                    const newWidth = Math.max(40, startWidth + dx); // minimum width
+                    currentTh.style.width = newWidth + 'px';
+
+                    // Apply the same width to all cells in this column
+                    const index = Array.prototype.indexOf.call(
+                        currentTh.parentElement.children,
+                        currentTh
+                    );
+                    table.querySelectorAll('tr').forEach(row => {
+                        const cell = row.children[index];
+                        if (cell && cell !== currentTh) {
+                            cell.style.width = newWidth + 'px';
+                        }
+                    });
                 }
 
-                if (mode === 'side-by-side') {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'side-by-side';
+                function onMouseUp() {
+                    currentTh = null;
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                }
 
+                ths.forEach(th => {
+                    th.style.position = 'relative';
+
+                    const resizer = document.createElement('div');
+                    resizer.className = 'col-resizer';
+                    th.appendChild(resizer);
+
+                    resizer.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        currentTh = th;
+                        startX = e.pageX;
+                        startWidth = th.offsetWidth;
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    });
+                });
+            }
+
+            function renderCompareView(container, data, mode) {
+                const wrapper = document.createElement('div');
+                // Determine class based on mode
+                wrapper.className = (mode === 'side-by-side') ? 'side-by-side' : 'stacked-view';
+
+                // Fallback if we don't have both (e.g. added or removed table)
+                // In this case, just render what we have without diff logic.
+                if (!data.base || !data.current) {
                     const left = document.createElement('div');
                     left.className = 'panel';
                     left.innerHTML = '<h4>Base</h4>';
@@ -484,23 +584,227 @@ def generate_html(
                     wrapper.appendChild(left);
                     wrapper.appendChild(right);
                     container.appendChild(wrapper);
+                    return;
                 }
-                else if (mode === 'stacked') {
-                    const top = document.createElement('div');
-                    top.className = 'panel';
-                    top.innerHTML = '<h4>Base</h4>';
-                    if (data.base) top.appendChild(createTable(data.base));
-                    else top.innerHTML += '<em>(Not present)</em>';
 
-                    const bottom = document.createElement('div');
-                    bottom.className = 'panel';
-                    bottom.style.marginTop = '20px';
-                    bottom.innerHTML = '<h4>Current</h4>';
-                    if (data.current) bottom.appendChild(createTable(data.current));
-                    else bottom.innerHTML += '<em>(Not present)</em>';
+                const leftPanel = document.createElement('div');
+                leftPanel.className = 'panel';
+                leftPanel.innerHTML = '<h4>Base</h4>';
 
-                    container.appendChild(top);
-                    container.appendChild(bottom);
+                const rightPanel = document.createElement('div');
+                rightPanel.className = 'panel';
+                rightPanel.innerHTML = '<h4>Current</h4>';
+
+                const leftTable = document.createElement('table');
+                leftTable.className = 'data-table';
+                const rightTable = document.createElement('table');
+                rightTable.className = 'data-table';
+
+                // --- headers ---
+                const leftThead = document.createElement('thead');
+                const leftHeadRow = document.createElement('tr');
+                data.base.columns.forEach(col => {
+                    const th = document.createElement('th');
+                    th.textContent = col;
+                    leftHeadRow.appendChild(th);
+                });
+                leftThead.appendChild(leftHeadRow);
+                leftTable.appendChild(leftThead);
+
+                const rightThead = document.createElement('thead');
+                const rightHeadRow = document.createElement('tr');
+                data.current.columns.forEach(col => {
+                    const th = document.createElement('th');
+                    th.textContent = col;
+                    rightHeadRow.appendChild(th);
+                });
+                rightThead.appendChild(rightHeadRow);
+                rightTable.appendChild(rightThead);
+
+                const leftTbody = document.createElement('tbody');
+                const rightTbody = document.createElement('tbody');
+
+                // --- daff alignment ---
+                const table1 = new daff.TableView([data.base.columns, ...data.base.rows]);
+                const table2 = new daff.TableView([data.current.columns, ...data.current.rows]);
+
+                const alignment = daff.compareTables(table1, table2).align();
+                const ordering = alignment.toOrder();
+                const units = ordering.getList();  // array of { l, r, p }
+
+                const baseColCount = data.base.columns.length;
+                const currColCount = data.current.columns.length;
+                const maxCols = Math.max(baseColCount, currColCount);
+
+                // ---- 1) Detect changed rows at the unit level ----
+                const changedIndices = new Array(units.length).fill(false);
+
+                for (let i = 0; i < units.length; i++) {
+                    const { l, r } = units[i];
+
+                    // Skip header alignments
+                    if (l === 0 || r === 0) continue;
+
+                    const baseRow = (l > 0 && data.base.rows[l - 1])
+                        ? data.base.rows[l - 1]
+                        : null;
+                    const currRow = (r > 0 && data.current.rows[r - 1])
+                        ? data.current.rows[r - 1]
+                        : null;
+
+                    let isChanged = false;
+
+                    if ((baseRow && !currRow) || (!baseRow && currRow)) {
+                        // pure add / delete
+                        isChanged = true;
+                    } else if (baseRow && currRow) {
+                        // compare cell-by-cell; also treat column-count changes as changes
+                        const colsToCheck = Math.max(
+                            baseRow.length,
+                            currRow.length,
+                            baseColCount,
+                            currColCount
+                        );
+                        for (let c = 0; c < colsToCheck; c++) {
+                            const baseVal = (c < baseRow.length) ? baseRow[c] : '';
+                            const currVal = (c < currRow.length) ? currRow[c] : '';
+                            if (baseVal !== currVal) {
+                                isChanged = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (isChanged) {
+                        changedIndices[i] = true;
+                    }
+                }
+
+                // ---- 2) Add context around changed rows ----
+                const CONTEXT_RADIUS = 2;
+                const toShow = new Array(units.length).fill(false);
+
+                for (let i = 0; i < units.length; i++) {
+                    if (!changedIndices[i]) continue;
+                    const start = Math.max(0, i - CONTEXT_RADIUS);
+                    const end = Math.min(units.length - 1, i + CONTEXT_RADIUS);
+                    for (let j = start; j <= end; j++) {
+                        toShow[j] = true;
+                    }
+                }
+
+                // ---- 3) Render only marked units, inserting "..." for gaps ----
+                let lastShownIndex = -1;
+
+                for (let i = 0; i < units.length; i++) {
+                    const unit = units[i];
+                    const l = unit.l;
+                    const r = unit.r;
+
+                    // Skip header alignments; do not show them or use them as content rows
+                    if (l === 0 || r === 0) continue;
+                    if (!toShow[i]) continue;
+
+                    // If there is a gap from the last shown content row, insert "..." rows
+                    if (lastShownIndex >= 0 && i > lastShownIndex + 1) {
+                        const leftEllipsisTr = document.createElement('tr');
+                        const rightEllipsisTr = document.createElement('tr');
+                        leftEllipsisTr.classList.add('ellipsis-row');
+                        rightEllipsisTr.classList.add('ellipsis-row');
+
+                        const leftTd = document.createElement('td');
+                        leftTd.colSpan = baseColCount;
+                        leftTd.textContent = '…';
+
+                        const rightTd = document.createElement('td');
+                        rightTd.colSpan = currColCount;
+                        rightTd.textContent = '…';
+
+                        leftEllipsisTr.appendChild(leftTd);
+                        rightEllipsisTr.appendChild(rightTd);
+                        leftTbody.appendChild(leftEllipsisTr);
+                        rightTbody.appendChild(rightEllipsisTr);
+                    }
+
+                    const baseRow = (l > 0 && data.base.rows[l - 1])
+                        ? data.base.rows[l - 1]
+                        : null;
+                    const currRow = (r > 0 && data.current.rows[r - 1])
+                        ? data.current.rows[r - 1]
+                        : null;
+
+                    const leftTr = document.createElement('tr');
+                    const rightTr = document.createElement('tr');
+
+                    // Row-level add/delete highlighting
+                    if (baseRow && !currRow) {
+                        leftTr.classList.add('daff-del');
+                    } else if (!baseRow && currRow) {
+                        rightTr.classList.add('daff-add');
+                    }
+
+                    for (let c = 0; c < maxCols; c++) {
+                        const baseVal = baseRow && c < baseRow.length ? baseRow[c] : '';
+                        const currVal = currRow && c < currRow.length ? currRow[c] : '';
+
+                        const tdLeft = document.createElement('td');
+                        const tdRight = document.createElement('td');
+
+                        // Use non-breaking space for empty cells so rows keep height
+                        tdLeft.textContent = baseVal || '\u00a0';
+                        tdRight.textContent = currVal || '\u00a0';
+
+                        const baseHasCol = c < baseColCount;
+                        const currHasCol = c < currColCount;
+
+                        if (baseRow && !currRow) {
+                            tdLeft.classList.add('daff-del');
+                        } else if (!baseRow && currRow) {
+                            tdRight.classList.add('daff-add');
+                        } else if (baseHasCol && !currHasCol) {
+                            tdLeft.classList.add('daff-del');
+                        } else if (!baseHasCol && currHasCol) {
+                            tdRight.classList.add('daff-add');
+                        } else if (baseRow && currRow && baseVal !== currVal) {
+                            tdLeft.classList.add('daff-mod');
+                            tdRight.classList.add('daff-mod');
+                        }
+
+                        leftTr.appendChild(tdLeft);
+                        rightTr.appendChild(tdRight);
+                    }
+
+                    leftTbody.appendChild(leftTr);
+                    rightTbody.appendChild(rightTr);
+
+                    lastShownIndex = i;
+                }
+
+                leftTable.appendChild(leftTbody);
+                rightTable.appendChild(rightTbody);
+
+                // Enable column resizing on both tables
+                makeColumnsResizable(leftTable);
+                makeColumnsResizable(rightTable);
+
+                leftPanel.appendChild(leftTable);
+                rightPanel.appendChild(rightTable);
+
+                wrapper.appendChild(leftPanel);
+                wrapper.appendChild(rightPanel);
+                container.appendChild(wrapper);
+            }
+
+            function renderView(container, key, mode) {
+                container.innerHTML = '';
+                const data = tableData[key];
+                if (!data) {
+                    container.textContent = 'Error loading data.';
+                    return;
+                }
+
+                if (mode === 'side-by-side' || mode === 'stacked') {
+                    renderCompareView(container, data, mode);
                 }
                 else if (mode === 'diff') {
                     if (!data.base || !data.current) {

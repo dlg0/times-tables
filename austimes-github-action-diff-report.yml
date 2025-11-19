@@ -1,0 +1,72 @@
+name: VEDA Diff Report
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write  # For pushing to gh-pages
+  statuses: write  # For setting commit status
+
+jobs:
+  diff-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important: fetch full history for diffs
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install times-tables
+        run: uv tool install git+https://github.com/dlg0/times-tables.git
+
+      - name: Generate Diff Report
+        id: diff
+        run: |
+          # Determine base SHA (handle new branch/first push case)
+          BASE_SHA="${{ github.event.before }}"
+          if [ "$BASE_SHA" == "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA="HEAD~1"
+          fi
+          
+          echo "Diffing $BASE_SHA -> ${{ github.sha }}"
+          
+          # Create reports directory
+          mkdir -p reports
+          OUTPUT_FILE="reports/${{ github.sha }}.html"
+          
+          times-tables diff-commits \
+            --base-ref "$BASE_SHA" \
+            --head-ref "${{ github.sha }}" \
+            --output "$OUTPUT_FILE"
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reports
+          destination_dir: reports
+          keep_files: true
+
+      - name: Link Report to Commit
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.sha;
+            const url = `https://${owner}.github.io/${repo}/reports/${sha}.html`;
+            
+            await github.rest.repos.createCommitStatus({
+              owner,
+              repo,
+              sha,
+              state: 'success',
+              context: 'VEDA Diff Report',
+              description: 'Click Details to view table changes',
+              target_url: url
+            });

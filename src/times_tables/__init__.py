@@ -3,6 +3,6 @@
 try:
     from importlib.metadata import version
 
-    __version__ = version("austimes-tables")
+    __version__ = version("times-tables")
 except Exception:
     __version__ = "unknown"

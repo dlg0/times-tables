@@ -1,4 +1,4 @@
-# Publishing (Git/GitHub) — austimes-tables
+# Publishing (Git/GitHub) — times-tables
 
 Primary distribution is the public GitHub repo `dlg0/times-tables`. Users install with uv directly from a Git tag:
 
@@ -120,7 +120,7 @@ CI will:
 Install and smoke-test the CLI from the tag:
 ```bash
 uv tool install --force git+https://github.com/dlg0/times-tables@vX.Y.Z
-austimes-tables --help
+times-tables --help
 ```
 
 ## Troubleshooting

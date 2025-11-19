@@ -12,7 +12,7 @@ The AusTIMES VEDA Table CLI vendors specific files from xl2times to maintain sta
 
 **Source Repository**: [xl2times](https://github.com/etsap-TIMES/xl2times)  
 **Source File**: `xl2times/config/veda-tags.json`  
-**Vendor Location**: `src/austimes_tables/vendor/veda-tags.json`  
+**Vendor Location**: `src/times_tables/vendor/veda-tags.json`  
 **License**: MIT License  
 **Copyright**: Copyright (c) 2022 ETSAP-TIMES  
 **Upstream Commit**: main branch (fetched 2025-11-18)  
@@ -34,7 +34,7 @@ The AusTIMES VEDA Table CLI vendors specific files from xl2times to maintain sta
 **Source**: xl2times table detection and extraction logic  
 **Integration**: Adapted patterns for VEDA tag recognition (`~FI_T:`, `~UC_T:`, etc.)  
 **License**: MIT License (xl2times)  
-**Implementation**: `src/austimes_tables/extractor.py`
+**Implementation**: `src/times_tables/extractor.py`
 
 #### Modifications
 
@@ -91,7 +91,7 @@ When distributing this software:
 1. **Include this project's LICENSE file** (MIT, AusTIMES Contributors)
 2. **Include vendored component attributions** via:
    - This VENDORING.md file
-   - Individual README.md files in `src/austimes_tables/vendor/`
+   - Individual README.md files in `src/times_tables/vendor/`
 3. **Preserve copyright notices** in vendored files (currently in `vendor/README.md`)
 
 ## Update Procedure
@@ -105,7 +105,7 @@ When xl2times schema changes require synchronization:
 curl -O https://raw.githubusercontent.com/etsap-TIMES/xl2times/main/xl2times/config/veda-tags.json
 
 # 2. Compare with current version
-diff veda-tags.json src/austimes_tables/vendor/veda-tags.json
+diff veda-tags.json src/times_tables/vendor/veda-tags.json
 
 # 3. Review changes for breaking schema updates
 # - New table types
@@ -113,7 +113,7 @@ diff veda-tags.json src/austimes_tables/vendor/veda-tags.json
 # - Removed or renamed fields
 
 # 4. Update vendor file
-cp veda-tags.json src/austimes_tables/vendor/veda-tags.json
+cp veda-tags.json src/times_tables/vendor/veda-tags.json
 
 # 5. Update vendor/README.md with new commit hash and date
 

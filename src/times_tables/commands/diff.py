@@ -6,8 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.models import TablesIndex
+from times_tables.index import TablesIndexIO
+from times_tables.models import TablesIndex
 
 
 def diff_decks(deck_a: str, deck_b: str, output: str | None = None) -> int:
@@ -80,7 +80,7 @@ def _load_index(deck_root: str, deck_name: str) -> TablesIndex:
     if not index_path.exists():
         raise FileNotFoundError(
             f"{deck_name}: tables_index.json not found at {index_path}\n"
-            "   Run 'austimes-tables extract' first"
+            "   Run 'times-tables extract' first"
         )
 
     try:

@@ -9,23 +9,29 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 
-from austimes_tables import excel, extract, ids, scanner
-from austimes_tables.csvio import write_deterministic_csv
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.models import TableMeta, TablesIndex, WorkbookMeta
-from austimes_tables.veda import VedaSchema
+from times_tables import excel, extract, ids, scanner
+from times_tables.csvio import write_deterministic_csv
+from times_tables.index import TablesIndexIO
+from times_tables.models import TableMeta, TablesIndex, WorkbookMeta
+from times_tables.veda import VedaSchema
 
 logger = logging.getLogger(__name__)
 console = Console()
 
 
-def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = False) -> TablesIndex:
+def extract_deck(
+    deck_root: str,
+    output_dir: str = "shadow",
+    verbose: bool = False,
+    files: list[str] | None = None,
+) -> TablesIndex:
     """Extract all VEDA tables from a deck to shadow CSV files.
 
     Args:
         deck_root: Path to VEDA deck root directory
         output_dir: Output directory name (default: 'shadow')
         verbose: Enable verbose logging
+        files: Optional list of specific workbook paths to extract (relative to deck_root)
 
     Returns:
         TablesIndex containing metadata for all extracted tables
@@ -57,7 +63,7 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
     meta_dir.mkdir(parents=True, exist_ok=True)
 
     # Initialize index
-    index = TablesIndexIO.create_empty(generator="austimes-tables/0.1.0")
+    index = TablesIndexIO.create_empty(generator="times-tables/0.1.0")
 
     # Track stats for summary
     workbook_stats = defaultdict(lambda: defaultdict(lambda: {"count": 0, "time": 0.0}))
@@ -84,27 +90,37 @@ def extract_deck(deck_root: str, output_dir: str = "shadow", verbose: bool = Fal
     # Find all Excel workbooks following VEDA naming conventions
     workbook_paths = []
 
-    # Root directory: all .xlsx/.xls files
-    workbook_paths.extend(deck_path.glob("*.xlsx"))
-    workbook_paths.extend(deck_path.glob("*.xls"))
+    if files:
+        # Use provided file list
+        for f in files:
+            path = deck_path / f
+            if path.exists() and path.suffix.lower() in (".xlsx", ".xls"):
+                workbook_paths.append(path)
+            elif verbose:
+                console.print(f"[dim]Skipping {f} (not found or not Excel)[/dim]")
+    else:
+        # Auto-discover files
+        # Root directory: all .xlsx/.xls files
+        workbook_paths.extend(deck_path.glob("*.xlsx"))
+        workbook_paths.extend(deck_path.glob("*.xls"))
 
-    # SuppXLS/: files prefixed with "Scen_"
-    suppxls_dir = deck_path / "SuppXLS"
-    if suppxls_dir.exists():
-        workbook_paths.extend(suppxls_dir.glob("Scen_*.xlsx"))
-        workbook_paths.extend(suppxls_dir.glob("Scen_*.xls"))
+        # SuppXLS/: files prefixed with "Scen_"
+        suppxls_dir = deck_path / "SuppXLS"
+        if suppxls_dir.exists():
+            workbook_paths.extend(suppxls_dir.glob("Scen_*.xlsx"))
+            workbook_paths.extend(suppxls_dir.glob("Scen_*.xls"))
 
-    # SuppXLS/Trades/: files prefixed with "Scen"
-    trades_dir = deck_path / "SuppXLS" / "Trades"
-    if trades_dir.exists():
-        workbook_paths.extend(trades_dir.glob("Scen*.xlsx"))
-        workbook_paths.extend(trades_dir.glob("Scen*.xls"))
+        # SuppXLS/Trades/: files prefixed with "Scen"
+        trades_dir = deck_path / "SuppXLS" / "Trades"
+        if trades_dir.exists():
+            workbook_paths.extend(trades_dir.glob("Scen*.xlsx"))
+            workbook_paths.extend(trades_dir.glob("Scen*.xls"))
 
-    # SubRES_Tmpl/: files prefixed with "SubRES_"
-    subres_dir = deck_path / "SubRES_Tmpl"
-    if subres_dir.exists():
-        workbook_paths.extend(subres_dir.glob("SubRES_*.xlsx"))
-        workbook_paths.extend(subres_dir.glob("SubRES_*.xls"))
+        # SubRES_Tmpl/: files prefixed with "SubRES_"
+        subres_dir = deck_path / "SubRES_Tmpl"
+        if subres_dir.exists():
+            workbook_paths.extend(subres_dir.glob("SubRES_*.xlsx"))
+            workbook_paths.extend(subres_dir.glob("SubRES_*.xls"))
 
     # Process each workbook
     for workbook_path in sorted(workbook_paths):

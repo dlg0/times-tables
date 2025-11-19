@@ -7,9 +7,9 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from austimes_tables.commands.format import format_deck
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.models import TableMeta, TablesIndex, WorkbookMeta
+from times_tables.commands.format import format_deck
+from times_tables.index import TablesIndexIO
+from times_tables.models import TableMeta, TablesIndex, WorkbookMeta
 
 
 @pytest.fixture

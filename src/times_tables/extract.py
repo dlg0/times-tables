@@ -10,8 +10,8 @@ from typing import Any
 import pandas as pd
 from openpyxl import Workbook
 
-from austimes_tables import excel
-from austimes_tables.veda import VedaSchema
+from times_tables import excel
+from times_tables.veda import VedaSchema
 
 logger = logging.getLogger(__name__)
 

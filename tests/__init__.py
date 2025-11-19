@@ -1,1 +1,1 @@
-"""Tests for austimes-tables."""
+"""Tests for times-tables."""

@@ -1,6 +1,6 @@
 """Unit tests for VEDA schema loading and tag accessors."""
 
-from austimes_tables.veda import VedaSchema
+from times_tables.veda import VedaSchema
 
 
 class TestVedaSchemaLoading:

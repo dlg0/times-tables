@@ -19,9 +19,9 @@ mdurl==0.1.2
 numpy==2.3.5
     # via pandas
 openpyxl==3.1.5
-    # via austimes-tables
+    # via times-tables
 pandas==2.3.3
-    # via austimes-tables
+    # via times-tables
 pygments==2.19.2
     # via rich
 python-dateutil==2.9.0.post0
@@ -29,7 +29,7 @@ python-dateutil==2.9.0.post0
 pytz==2025.2
     # via pandas
 rich==14.2.0
-    # via austimes-tables
+    # via times-tables
 six==1.17.0
     # via python-dateutil
 tzdata==2025.2

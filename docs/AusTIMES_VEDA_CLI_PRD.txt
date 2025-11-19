@@ -34,22 +34,22 @@ Schemas not defined in YAML. Instead, CLI integrates with xl2times (or wrapper m
 
 5.1 extract
 Usage:
-  austimes-tables extract /path/to/deck_root
+  times-tables extract /path/to/deck_root
 Detects all *.xlsx files in deck and SupplXLS. Extracts VEDA tables with xl2times. Writes canonical CSVs and updates tables_index.json.
 
 5.2 format
 Usage:
-  austimes-tables format /path/to/deck_root
+  times-tables format /path/to/deck_root
 Canonical sorting by primary key. Canonical column order. Normalised CSV output for stable diffs.
 
 5.3 validate
 Usage:
-  austimes-tables validate /path/to/deck_root
+  times-tables validate /path/to/deck_root
 Uses schema from xl2times. Checks required columns, primary key completeness, basic type safety. Nonzero exit code on failure.
 
 5.4 diff
 Usage:
-  austimes-tables diff deckA deckB
+  times-tables diff deckA deckB
 Computes structured diffs using shadow directory:
 
 - Tables added / removed / common
@@ -62,7 +62,7 @@ Missing columns treated as NULL for diff alignment.
 
 5.5 report (HTML)
 Usage:
-  austimes-tables report deckA deckB --output diff.html
+  times-tables report deckA deckB --output diff.html
 Produces self-contained HTML diff report with:
   - Deck summary
   - Workbook sections (accordion)
@@ -124,10 +124,10 @@ If name missing:
 
 9. CI PIPELINE INTEGRATION
 Typical flow:
-  austimes-tables extract deck/
-  austimes-tables format deck/
-  austimes-tables validate deck/
-  austimes-tables report main_deck/ pr_deck/ --output diff.html
+  times-tables extract deck/
+  times-tables format deck/
+  times-tables validate deck/
+  times-tables report main_deck/ pr_deck/ --output diff.html
 Upload diff.html as build artifact.
 
 10. ROADMAP

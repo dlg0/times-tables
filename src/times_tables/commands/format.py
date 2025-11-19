@@ -6,9 +6,9 @@ from pathlib import Path
 import pandas as pd
 from rich.console import Console
 
-from austimes_tables.csvio import write_deterministic_csv
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.veda import VedaSchema
+from times_tables.csvio import write_deterministic_csv
+from times_tables.index import TablesIndexIO
+from times_tables.veda import VedaSchema
 
 logger = logging.getLogger(__name__)
 console = Console()

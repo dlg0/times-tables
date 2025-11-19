@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from austimes_tables.sorting import sort_by_primary_keys
+from times_tables.sorting import sort_by_primary_keys
 
 
 def test_sort_single_pk():

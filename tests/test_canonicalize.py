@@ -3,8 +3,8 @@
 import pandas as pd
 import pytest
 
-from austimes_tables.canonicalize import canonicalize_columns
-from austimes_tables.veda import VedaSchema
+from times_tables.canonicalize import canonicalize_columns
+from times_tables.veda import VedaSchema
 
 
 class TestCanonicalizeColumns:

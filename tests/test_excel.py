@@ -6,7 +6,7 @@ from pathlib import Path
 import openpyxl
 import pytest
 
-from austimes_tables.excel import (
+from times_tables.excel import (
     find_tags,
     get_sheet_names,
     hash_workbook,

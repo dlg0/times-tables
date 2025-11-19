@@ -112,7 +112,7 @@ class TablesIndex:
 
     Attributes:
         version: Schema version (integer, currently 1)
-        generator: Tool name and version (e.g., "austimes-tables/0.1.0")
+        generator: Tool name and version (e.g., "times-tables/0.1.0")
         generated_at: ISO 8601 timestamp of index generation (UTC)
         workbooks: Map of workbook_id → WorkbookMeta
         tables: Map of {workbook_id}/{table_id} → TableMeta
