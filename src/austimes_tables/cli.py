@@ -164,13 +164,11 @@ Examples:
   # Limit detailed row output for large diffs
   austimes-tables report base_deck/ modified_deck/ --output diff.html --limit-rows 5000
 
-Report features (Phase 1):
+Report features:
   - Deck summary (changed workbooks/tables counts)
   - Table-level changes (added/removed/modified)
-  - Color-coded sections
-  - Self-contained (inline CSS, no external dependencies)
-
-Note: Phase 1 implementation. Row-level diff visualization planned for Phase 2.
+  - Detailed views: Side-by-side, Stacked, and Diff (highlighted changes)
+  - Self-contained (inline CSS/JS, no external dependencies)
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
