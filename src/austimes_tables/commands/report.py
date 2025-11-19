@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from ..index import TablesIndexIO
-from ..models import TableMeta, TablesIndex
+from ..models import TableMeta
 
 
 def generate_report(deck_a: str, deck_b: str, output: str, limit_rows: int = 2000) -> int:
@@ -48,12 +48,15 @@ def generate_report(deck_a: str, deck_b: str, output: str, limit_rows: int = 200
             with open(daff_path, "r", encoding="utf-8") as f:
                 daff_js = f.read()
         else:
-            print(f"Warning: daff.js not found at {daff_path}. Diff view will not work.", file=sys.stderr)
+            print(
+                f"Warning: daff.js not found at {daff_path}. Diff view will not work.",
+                file=sys.stderr,
+            )
 
         # Generate HTML
         html = generate_html(deck_a, deck_b, diff_result, limit_rows, daff_js)
 
-        # Write output
+        # Write outpu
         output_path = Path(output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -120,7 +123,7 @@ def read_table_data(deck_path: Path, table: TableMeta, limit_rows: int) -> dict[
                 header = next(reader)
             except StopIteration:
                 header = []
-            
+
             rows = []
             for i, row in enumerate(reader):
                 if i >= limit_rows:
@@ -139,7 +142,7 @@ def generate_html(
     Args:
         deck_a: Path to first deck
         deck_b: Path to second deck
-        diff_result: Diff computation result
+        diff_result: Diff computation resul
         limit_rows: Maximum rows to show
         daff_js: Content of daff.js library
 
@@ -152,7 +155,7 @@ def generate_html(
     unchanged = diff_result["unchanged"]
     index_a = diff_result["index_a"]
     index_b = diff_result["index_b"]
-    
+
     deck_a_path = Path(deck_a)
     deck_b_path = Path(deck_b)
 
@@ -163,20 +166,16 @@ def generate_html(
     def add_data(key, type_):
         base_data = None
         current_data = None
-        
+
         if type_ in ("removed", "modified"):
             table = index_a.tables[key]
             base_data = read_table_data(deck_a_path, table, limit_rows)
-        
+
         if type_ in ("added", "modified"):
             table = index_b.tables[key]
             current_data = read_table_data(deck_b_path, table, limit_rows)
-            
-        table_data[key] = {
-            "base": base_data,
-            "current": current_data,
-            "type": type_
-        }
+
+        table_data[key] = {"base": base_data, "current": current_data, "type": type_}
 
     for key in added:
         add_data(key, "added")
@@ -238,7 +237,7 @@ def generate_html(
         .removed {{ color: #dc3545; }}
         .modified {{ color: #ffc107; }}
         .unchanged {{ color: #6c757d; }}
-        
+
         .table-item {{
             padding: 10px;
             margin: 5px 0;
@@ -254,7 +253,7 @@ def generate_html(
         .table-item.added {{ border-left-color: #28a745; background: #d4edda; }}
         .table-item.removed {{ border-left-color: #dc3545; background: #f8d7da; }}
         .table-item.modified {{ border-left-color: #ffc107; background: #fff3cd; }}
-        
+
         .details-container {{
             display: none;
             margin-top: 10px;
@@ -265,7 +264,7 @@ def generate_html(
         .details-container.active {{
             display: block;
         }}
-        
+
         .toolbar {{
             margin-bottom: 10px;
             padding-bottom: 10px;
@@ -284,7 +283,7 @@ def generate_html(
             color: white;
             border-color: #0056b3;
         }}
-        
+
         .data-table {{
             border-collapse: collapse;
             width: 100%;
@@ -300,7 +299,7 @@ def generate_html(
             background: #f1f1f1;
             font-weight: bold;
         }}
-        
+
         .side-by-side {{
             display: flex;
             gap: 20px;
@@ -310,7 +309,7 @@ def generate_html(
             overflow-x: auto;
         }}
         .panel h4 {{ margin: 0 0 10px 0; }}
-        
+
         /* Daff styles */
         .daff-add {{ background-color: #d4edda; }}
         .daff-del {{ background-color: #f8d7da; text-decoration: line-through; }}
@@ -335,7 +334,7 @@ def generate_html(
     html_parts.append(f"""
         <div class="summary">
             <h2>Summary</h2>
-            <p>Compared: <span class="deck-info">{deck_a_html}</span> vs \
+            <p>Compared: <span class="deck-info">{deck_a_html}</span> vs
 <span class="deck-info">{deck_b_html}</span></p>
             <ul>
                 <li><span class="stat added">Added:</span> {len(added)} table(s)</li>
@@ -376,16 +375,20 @@ def generate_html(
         html_parts.append('<h3 class="added">Added Tables</h3><div class="table-list">')
         for table_key in added:
             table = index_b.tables[table_key]
-            html_parts.append(render_table_item(table_key, "added", table, f"Rows: {table.row_count}"))
-        html_parts.append('</div>')
+            html_parts.append(
+                render_table_item(table_key, "added", table, f"Rows: {table.row_count}")
+            )
+        html_parts.append("</div>")
 
     # Removed tables
     if removed:
         html_parts.append('<h3 class="removed">Removed Tables</h3><div class="table-list">')
         for table_key in removed:
             table = index_a.tables[table_key]
-            html_parts.append(render_table_item(table_key, "removed", table, f"Rows: {table.row_count}"))
-        html_parts.append('</div>')
+            html_parts.append(
+                render_table_item(table_key, "removed", table, f"Rows: {table.row_count}")
+            )
+        html_parts.append("</div>")
 
     # Modified tables
     if modified:
@@ -393,11 +396,17 @@ def generate_html(
         for table_key in modified:
             table_a = index_a.tables[table_key]
             table_b = index_b.tables[table_key]
-            row_diff = table_b.row_count - table_a.row_count
-            row_diff_str = f"(+{row_diff})" if row_diff > 0 else f"({row_diff})" if row_diff < 0 else "(no change)"
+            row_diff = table_b.row_count - table_a.row_coun
+            row_diff_str = (
+                f"(+{row_diff})"
+                if row_diff > 0
+                else f"({row_diff})"
+                if row_diff < 0
+                else "(no change)"
+            )
             changes_str = f"Rows: {table_a.row_count} → {table_b.row_count} {row_diff_str}"
             html_parts.append(render_table_item(table_key, "modified", table, changes_str))
-        html_parts.append('</div>')
+        html_parts.append("</div>")
 
     if not added and not removed and not modified:
         html_parts.append('<p class="no-changes">No changes detected between the two decks.</p>')
@@ -415,10 +424,10 @@ def generate_html(
             // Helper to render a basic HTML table
             function createTable(data) {
                 if (!data) return document.createElement('div');
-                
+
                 const table = document.createElement('table');
                 table.className = 'data-table';
-                
+
                 const thead = document.createElement('thead');
                 const trHead = document.createElement('tr');
                 data.columns.forEach(col => {
@@ -428,7 +437,7 @@ def generate_html(
                 });
                 thead.appendChild(trHead);
                 table.appendChild(thead);
-                
+
                 const tbody = document.createElement('tbody');
                 data.rows.forEach(row => {
                     const tr = document.createElement('tr');
@@ -440,7 +449,7 @@ def generate_html(
                     tbody.appendChild(tr);
                 });
                 table.appendChild(tbody);
-                
+
                 return table;
             }
 
@@ -455,13 +464,13 @@ def generate_html(
                 if (mode === 'side-by-side') {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'side-by-side';
-                    
+
                     const left = document.createElement('div');
                     left.className = 'panel';
                     left.innerHTML = '<h4>Base</h4>';
                     if (data.base) left.appendChild(createTable(data.base));
                     else left.innerHTML += '<em>(Not present)</em>';
-                    
+
                     const right = document.createElement('div');
                     right.className = 'panel';
                     right.innerHTML = '<h4>Current</h4>';
@@ -471,14 +480,14 @@ def generate_html(
                     wrapper.appendChild(left);
                     wrapper.appendChild(right);
                     container.appendChild(wrapper);
-                } 
+                }
                 else if (mode === 'stacked') {
                     const top = document.createElement('div');
                     top.className = 'panel';
                     top.innerHTML = '<h4>Base</h4>';
                     if (data.base) top.appendChild(createTable(data.base));
                     else top.innerHTML += '<em>(Not present)</em>';
-                    
+
                     const bottom = document.createElement('div');
                     bottom.className = 'panel';
                     bottom.style.marginTop = '20px';
@@ -491,8 +500,9 @@ def generate_html(
                 }
                 else if (mode === 'diff') {
                     if (!data.base || !data.current) {
-                        container.innerHTML = '<em>Diff requires both base and current tables. Switch to Side-by-Side view to see single table.</em>';
-                        // If only one exists, just show it
+                        container.innerHTML = '<em>Diff requires both base and current tables. ' +
+                            'Switch to Side-by-Side view to see single table.</em>';
+                        // If only one exists, just show i
                         if (data.base) container.appendChild(createTable(data.base));
                         if (data.current) container.appendChild(createTable(data.current));
                         return;
@@ -505,17 +515,17 @@ def generate_html(
                     const alignment = daff.compareTables(table1, table2).align();
                     const dataDiff = [];
                     const tableDiff = new daff.TableView(dataDiff);
-                    
+
                     const flags = new daff.CompareFlags();
                     const highlighter = new daff.TableDiff(alignment, flags);
                     highlighter.hilite(tableDiff);
-                    
+
                     const diff2html = new daff.DiffRender();
                     diff2html.render(tableDiff);
                     const tableHtml = diff2html.html();
-                    
+
                     container.innerHTML = tableHtml;
-                    
+
                     // Add class to table
                     const tableEl = container.querySelector('table');
                     if (tableEl) tableEl.className = 'data-table daff-table';
@@ -529,14 +539,14 @@ def generate_html(
                     const wrapper = e.target.closest('.table-wrapper');
                     const details = wrapper.querySelector('.details-container');
                     const key = wrapper.dataset.key;
-                    
+
                     // Toggle active class
                     if (details.classList.contains('active')) {
                         details.classList.remove('active');
                     } else {
                         // Close others? Optional. Let's keep them open if user wants.
                         details.classList.add('active');
-                        
+
                         // Render default view if empty
                         const container = details.querySelector('.view-container');
                         if (!container.hasChildNodes()) {

@@ -228,7 +228,9 @@ def test_generate_html_basic(temp_decks):
     index_b = temp_decks["index_b"]
 
     diff_result = compute_diff(index_a, index_b)
-    html = generate_html(temp_decks["deck_a"], temp_decks["deck_b"], diff_result, limit_rows=2000, daff_js="")
+    html = generate_html(
+        temp_decks["deck_a"], temp_decks["deck_b"], diff_result, limit_rows=2000, daff_js=""
+    )
 
     assert "<!DOCTYPE html>" in html
     assert "<html>" in html
@@ -313,7 +315,9 @@ def test_html_validity(temp_decks):
     index_b = temp_decks["index_b"]
 
     diff_result = compute_diff(index_a, index_b)
-    html = generate_html(temp_decks["deck_a"], temp_decks["deck_b"], diff_result, limit_rows=2000, daff_js="")
+    html = generate_html(
+        temp_decks["deck_a"], temp_decks["deck_b"], diff_result, limit_rows=2000, daff_js=""
+    )
 
     # Basic validation checks
     assert html.count("<html>") == 1
