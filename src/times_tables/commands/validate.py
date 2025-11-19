@@ -6,8 +6,8 @@ from typing import List, Tuple
 
 import pandas as pd
 
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.veda import VedaSchema
+from times_tables.index import TablesIndexIO
+from times_tables.veda import VedaSchema
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ def validate_deck(deck_root: str) -> int:
     # Check index exists
     if not index_path.exists():
         print(f"❌ tables_index.json not found: {index_path}")
-        print("   Run 'austimes-tables extract' first")
+        print("   Run 'times-tables extract' first")
         return 1
 
     # Load index

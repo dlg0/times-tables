@@ -448,7 +448,7 @@ uv run times-tables validate tests/fixtures/sample_deck
 
 ```bash
 # Run all tests with coverage
-pytest --cov=austimes_tables
+pytest --cov=times_tables
 
 # Run specific test module
 pytest tests/test_extract.py
@@ -482,7 +482,7 @@ bd close bd-123 --reason "Completed" --json
 
 ```
 times-tables/
-├── src/austimes_tables/     # Main package
+├── src/times_tables/     # Main package
 │   ├── cli.py               # CLI entry point
 │   ├── commands/            # Command implementations
 │   │   ├── extract.py

@@ -36,4 +36,4 @@ Portions of this software use schema definitions and extraction patterns from:
 - Copyright: Copyright (c) 2022 ETSAP-TIMES
 
 Full attribution and vendoring details are documented in VENDORING.md and
-src/austimes_tables/vendor/README.md.
+src/times_tables/vendor/README.md.

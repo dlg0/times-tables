@@ -11,10 +11,10 @@ import openpyxl
 import pandas as pd
 import pytest
 
-from austimes_tables import excel
-from austimes_tables.extract import extract_table
-from austimes_tables.scanner import scan_workbook
-from austimes_tables.veda import VedaSchema
+from times_tables import excel
+from times_tables.extract import extract_table
+from times_tables.scanner import scan_workbook
+from times_tables.veda import VedaSchema
 
 
 @pytest.fixture

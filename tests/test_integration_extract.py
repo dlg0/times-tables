@@ -44,7 +44,7 @@ def test_extract_creates_shadow_directory(deck_copy, expected_tables):
     """Test that extract command creates shadow/ directory structure."""
     # Run extraction via CLI
     result = subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -67,7 +67,7 @@ def test_extract_creates_csv_files(deck_copy, expected_tables):
     """Test that extract creates CSV files for all tables."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -96,7 +96,7 @@ def test_extract_creates_tables_index(deck_copy, expected_tables):
     """Test that extract creates shadow/meta/tables_index.json."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -122,7 +122,7 @@ def test_csv_headers_match_schema(deck_copy, expected_tables):
     """Test that CSV headers match expected columns from fixtures."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -163,7 +163,7 @@ def test_csv_deterministic_format(deck_copy, expected_tables):
     # Run extraction twice
     for _ in range(2):
         subprocess.run(
-            [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+            [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
             capture_output=True,
             text=True,
             cwd=deck_copy,
@@ -181,7 +181,7 @@ def test_csv_deterministic_format(deck_copy, expected_tables):
 
     # Run extraction again
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -212,7 +212,7 @@ def test_csv_encoding_utf8(deck_copy, expected_tables):
     """Test that all CSVs are UTF-8 encoded."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -238,7 +238,7 @@ def test_index_contains_all_tables(deck_copy, expected_tables):
     """Test that tables_index.json contains all expected tables."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -270,7 +270,7 @@ def test_index_has_required_fields(deck_copy, expected_tables):
     """Test that each table entry in index has all required fields."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -319,7 +319,7 @@ def test_index_row_counts_match_csvs(deck_copy, expected_tables):
     """Test that row_count in index matches actual CSV row count."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -357,7 +357,7 @@ def test_extraction_matches_expected_row_counts(deck_copy, expected_tables):
     """Test that extracted tables have expected row counts from fixtures."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -397,7 +397,7 @@ def test_extraction_matches_expected_table_count(deck_copy, expected_tables):
     """Test that total number of extracted tables matches expected."""
     # Run extraction
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(deck_copy)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(deck_copy)],
         capture_output=True,
         text=True,
         cwd=deck_copy,
@@ -427,7 +427,7 @@ def test_extract_with_custom_output_dir(deck_copy, expected_tables):
         [
             sys.executable,
             "-m",
-            "austimes_tables.cli",
+            "times_tables.cli",
             "extract",
             str(deck_copy),
             "--output-dir",
@@ -457,7 +457,7 @@ def test_extract_nonexistent_deck(tmp_path):
     nonexistent = tmp_path / "does_not_exist"
 
     result = subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(nonexistent)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(nonexistent)],
         capture_output=True,
         text=True,
     )
@@ -472,7 +472,7 @@ def test_extract_empty_deck(tmp_path):
     empty_deck.mkdir()
 
     subprocess.run(
-        [sys.executable, "-m", "austimes_tables.cli", "extract", str(empty_deck)],
+        [sys.executable, "-m", "times_tables.cli", "extract", str(empty_deck)],
         capture_output=True,
         text=True,
         cwd=empty_deck,

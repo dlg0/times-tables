@@ -81,7 +81,7 @@ make test
 make test
 
 # Run with coverage
-pytest tests/ -v --cov=austimes_tables --cov-report=term-missing
+pytest tests/ -v --cov=times_tables --cov-report=term-missing
 
 # Run specific test file
 pytest tests/unit/test_extractor.py -v
@@ -193,7 +193,7 @@ To ensure stable Git diffs across platforms:
 
 ```
 times-tables/
-├── src/austimes_tables/    # Main package code
+├── src/times_tables/    # Main package code
 ├── tests/                  # Test suite
 │   ├── fixtures/          # Sample test decks (committed)
 │   ├── unit/              # Unit tests

@@ -1,4 +1,4 @@
-"""Command-line interface for austimes-tables."""
+"""Command-line interface for times-tables."""
 
 import argparse
 import logging
@@ -11,7 +11,7 @@ from rich_argparse import RichHelpFormatter
 try:
     from importlib.metadata import version
 
-    __version__ = version("austimes-tables")
+    __version__ = version("times-tables")
 except Exception:
     __version__ = "unknown"
 
@@ -40,13 +40,13 @@ def main():
         epilog="""
 Examples:
   # Extract tables to default shadow/ directory
-  austimes-tables extract /path/to/deck_root
+  times-tables extract /path/to/deck_root
 
   # Extract with custom output directory
-  austimes-tables extract /path/to/deck_root --output-dir=export
+  times-tables extract /path/to/deck_root --output-dir=export
 
   # Extract with verbose output (shows per-table progress)
-  austimes-tables extract /path/to/deck_root -v
+  times-tables extract /path/to/deck_root -v
 
 Output structure:
   deck_root/shadow/tables/<workbook_id>/<table_id>.csv
@@ -79,10 +79,10 @@ Output structure:
         epilog="""
 Examples:
   # Ensure deterministic CSV format (idempotent, safe to run multiple times)
-  austimes-tables format /path/to/deck_root
+  times-tables format /path/to/deck_root
 
   # Recommended before committing to Git
-  austimes-tables format . && git add shadow/
+  times-tables format . && git add shadow/
 
 Purpose:
   - Sorts rows by primary key (lexicographic order)
@@ -102,10 +102,10 @@ Purpose:
         epilog="""
 Examples:
   # Validate and show errors
-  austimes-tables validate /path/to/deck_root
+  times-tables validate /path/to/deck_root
 
   # Use in CI (exit code 0=valid, 1=errors)
-  if austimes-tables validate deck/; then
+  if times-tables validate deck/; then
     echo "All tables valid"
   else
     echo "Validation errors found"
@@ -130,10 +130,10 @@ Checks performed:
         epilog="""
 Examples:
   # Diff to stdout
-  austimes-tables diff base_deck/ modified_deck/
+  times-tables diff base_deck/ modified_deck/
 
   # Save diff to file
-  austimes-tables diff base_deck/ modified_deck/ --output diff.json
+  times-tables diff base_deck/ modified_deck/ --output diff.json
 
 Output includes:
   - Tables added (in deck_b, not in deck_a)
@@ -159,10 +159,10 @@ Exit codes:
         epilog="""
 Examples:
   # Generate HTML report
-  austimes-tables report base_deck/ modified_deck/ --output diff.html
+  times-tables report base_deck/ modified_deck/ --output diff.html
 
   # Limit detailed row output for large diffs
-  austimes-tables report base_deck/ modified_deck/ --output diff.html --limit-rows 5000
+  times-tables report base_deck/ modified_deck/ --output diff.html --limit-rows 5000
 
 Report features:
   - Deck summary (changed workbooks/tables counts)
@@ -176,6 +176,43 @@ Report features:
     report_parser.add_argument("deck_b", help="Path to second deck (modified)")
     report_parser.add_argument("--output", required=True, help="Output HTML file path")
     report_parser.add_argument(
+        "--limit-rows",
+        type=int,
+        default=2000,
+        help="Maximum rows to show in detailed diff (default: 2000)",
+    )
+
+    # diff-commits command
+    diff_commits_parser = subparsers.add_parser(
+        "diff-commits",
+        help="Generate HTML diff report between git commits",
+        description="Generate HTML diff report between two git commits using worktrees.",
+        epilog="""
+Examples:
+  # Diff last commit against previous (default)
+  times-tables diff-commits
+
+  # Diff specific commits
+  times-tables diff-commits --base-ref v1.0 --head-ref v1.1 --output report.html
+
+  # Run in a specific repo
+  times-tables diff-commits --repo-root /path/to/repo
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    diff_commits_parser.add_argument(
+        "--repo-root", default=".", help="Path to git repository root (default: .)"
+    )
+    diff_commits_parser.add_argument(
+        "--base-ref", default="HEAD~1", help="Base commit reference (default: HEAD~1)"
+    )
+    diff_commits_parser.add_argument(
+        "--head-ref", default="HEAD", help="Head commit reference (default: HEAD)"
+    )
+    diff_commits_parser.add_argument(
+        "--output", default="deck-diff.html", help="Output HTML file path (default: deck-diff.html)"
+    )
+    diff_commits_parser.add_argument(
         "--limit-rows",
         type=int,
         default=2000,
@@ -209,7 +246,7 @@ Examples:
 
     # Import command handlers
     if args.command == "extract":
-        from austimes_tables.commands.extract import extract_deck
+        from times_tables.commands.extract import extract_deck
 
         # Configure logging
         logging.basicConfig(
@@ -230,7 +267,7 @@ Examples:
                 traceback.print_exc()
             return 1
     elif args.command == "format":
-        from austimes_tables.commands.format import format_deck
+        from times_tables.commands.format import format_deck
 
         # Configure logging
         logging.basicConfig(
@@ -241,19 +278,25 @@ Examples:
 
         return format_deck(args.deck_root)
     elif args.command == "validate":
-        from austimes_tables.commands.validate import validate_deck
+        from times_tables.commands.validate import validate_deck
 
         return validate_deck(args.deck_root)
     elif args.command == "diff":
-        from austimes_tables.commands.diff import diff_decks
+        from times_tables.commands.diff import diff_decks
 
         return diff_decks(args.deck_a, args.deck_b, args.output)
     elif args.command == "report":
-        from austimes_tables.commands.report import generate_report
+        from times_tables.commands.report import generate_report
 
         return generate_report(args.deck_a, args.deck_b, args.output, args.limit_rows)
+    elif args.command == "diff-commits":
+        from times_tables.commands.diff_commits import diff_commits
+
+        return diff_commits(
+            args.repo_root, args.base_ref, args.head_ref, args.output, args.limit_rows
+        )
     elif args.command == "update":
-        from austimes_tables.commands.update import update_cli
+        from times_tables.commands.update import update_cli
 
         return update_cli(args.version)
 

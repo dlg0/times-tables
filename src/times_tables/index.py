@@ -74,7 +74,7 @@ class TablesIndexIO:
         return TablesIndex.from_dict(data)
 
     @staticmethod
-    def create_empty(generator: str = "austimes-tables/0.1.0") -> TablesIndex:
+    def create_empty(generator: str = "times-tables/0.1.0") -> TablesIndex:
         """Create a new empty TablesIndex.
 
         Args:

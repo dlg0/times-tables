@@ -6,15 +6,15 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from austimes_tables.commands.report import (
+from times_tables.commands.report import (
     compute_diff,
     escape_html,
     generate_html,
     generate_report,
 )
-from austimes_tables.csvio import write_deterministic_csv
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.models import TableMeta, TablesIndex, WorkbookMeta
+from times_tables.csvio import write_deterministic_csv
+from times_tables.index import TablesIndexIO
+from times_tables.models import TableMeta, TablesIndex, WorkbookMeta
 
 
 @pytest.fixture
@@ -47,7 +47,7 @@ def temp_decks():
         (tables_b / workbook_id).mkdir()
 
         # Create index_a with 2 tables
-        index_a = TablesIndex.create_empty("austimes-tables/0.1.0")
+        index_a = TablesIndex.create_empty("times-tables/0.1.0")
         index_a.add_workbook(
             WorkbookMeta(workbook_id=workbook_id, source_path="test.xlsx", hash="sha256:abc123")
         )
@@ -105,7 +105,7 @@ def temp_decks():
         TablesIndexIO.write(index_a, str(meta_a / "tables_index.json"))
 
         # Create index_b with 2 tables
-        index_b = TablesIndex.create_empty("austimes-tables/0.1.0")
+        index_b = TablesIndex.create_empty("times-tables/0.1.0")
         index_b.add_workbook(
             WorkbookMeta(workbook_id=workbook_id, source_path="test.xlsx", hash="sha256:abc123")
         )
@@ -166,8 +166,8 @@ def test_compute_diff(temp_decks):
 def test_compute_diff_with_modification():
     """Test diff computation with modified table."""
     # Create minimal indexes with one table that differs
-    index_a = TablesIndex.create_empty("austimes-tables/0.1.0")
-    index_b = TablesIndex.create_empty("austimes-tables/0.1.0")
+    index_a = TablesIndex.create_empty("times-tables/0.1.0")
+    index_b = TablesIndex.create_empty("times-tables/0.1.0")
 
     workbook_id = "test123"
     index_a.add_workbook(
@@ -250,7 +250,7 @@ def test_generate_html_basic(temp_decks):
 
 def test_generate_html_no_changes():
     """Test HTML generation when there are no changes."""
-    index = TablesIndex.create_empty("austimes-tables/0.1.0")
+    index = TablesIndex.create_empty("times-tables/0.1.0")
     diff_result = {
         "added": [],
         "removed": [],

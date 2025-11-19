@@ -4,15 +4,15 @@ import json
 
 import pytest
 
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.models import TableMeta, TablesIndex, WorkbookMeta
+from times_tables.index import TablesIndexIO
+from times_tables.models import TableMeta, TablesIndex, WorkbookMeta
 
 
 @pytest.fixture
 def sample_index() -> TablesIndex:
     """Create a sample TablesIndex with test data."""
     index = TablesIndex(
-        version=1, generator="austimes-tables/0.1.0", generated_at="2025-11-18T10:00:00Z"
+        version=1, generator="times-tables/0.1.0", generated_at="2025-11-18T10:00:00Z"
     )
 
     wb = WorkbookMeta(
@@ -149,7 +149,7 @@ def test_create_empty_index_default_generator():
     """create_empty should use default generator if not specified."""
     index = TablesIndexIO.create_empty()
 
-    assert index.generator == "austimes-tables/0.1.0"
+    assert index.generator == "times-tables/0.1.0"
 
 
 def test_read_nonexistent_file():
@@ -242,7 +242,7 @@ def test_roundtrip_with_multiple_tables(tmp_path):
 def test_roundtrip_with_unicode(tmp_path):
     """Roundtrip should preserve Unicode characters."""
     index = TablesIndex(
-        version=1, generator="austimes-tables/0.1.0", generated_at="2025-11-18T10:00:00Z"
+        version=1, generator="times-tables/0.1.0", generated_at="2025-11-18T10:00:00Z"
     )
 
     wb = WorkbookMeta(

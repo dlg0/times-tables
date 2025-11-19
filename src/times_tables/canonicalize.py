@@ -4,7 +4,7 @@ import logging
 
 import pandas as pd
 
-from austimes_tables.veda import VedaSchema
+from times_tables.veda import VedaSchema
 
 logger = logging.getLogger(__name__)
 

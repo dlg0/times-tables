@@ -23,11 +23,11 @@ mdurl==0.1.2
 numpy==2.3.5
     # via pandas
 openpyxl==3.1.5
-    # via austimes-tables
+    # via times-tables
 packaging==25.0
     # via pytest
 pandas==2.3.3
-    # via austimes-tables
+    # via times-tables
 pluggy==1.6.0
     # via pytest
     # via pytest-cov
@@ -42,7 +42,7 @@ python-dateutil==2.9.0.post0
 pytz==2025.2
     # via pandas
 rich==14.2.0
-    # via austimes-tables
+    # via times-tables
 ruff==0.14.5
 six==1.17.0
     # via python-dateutil

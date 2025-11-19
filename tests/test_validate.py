@@ -6,10 +6,10 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from austimes_tables.commands.validate import validate_deck
-from austimes_tables.csvio import write_deterministic_csv
-from austimes_tables.index import TablesIndexIO
-from austimes_tables.models import TableMeta, TablesIndex, WorkbookMeta
+from times_tables.commands.validate import validate_deck
+from times_tables.csvio import write_deterministic_csv
+from times_tables.index import TablesIndexIO
+from times_tables.models import TableMeta, TablesIndex, WorkbookMeta
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ def temp_deck():
 
 def _create_test_index(deck_path: Path, tables_meta: list[TableMeta]) -> TablesIndex:
     """Helper to create tables_index.json with given table metadata."""
-    index = TablesIndex.create_empty("austimes-tables/test")
+    index = TablesIndex.create_empty("times-tables/test")
 
     # Add a dummy workbook
     workbook = WorkbookMeta(workbook_id="test1234", source_path="test.xlsx", hash="sha256:dummy")

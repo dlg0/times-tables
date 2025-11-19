@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "austimes-tables"
+name = "times-tables"
 version = "0.4.1"
 description = "Git-friendly CLI for extracting, validating, and diffing VEDA-TIMES input tables"
 readme = "README.md"
@@ -38,11 +38,10 @@ dev = [
 ]
 
 [project.scripts]
-times-tables = "austimes_tables.cli:main"
-austimes-tables = "austimes_tables.cli:main"  # Deprecated alias
+times-tables = "times_tables.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/austimes_tables"]
+packages = ["src/times_tables"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

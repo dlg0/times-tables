@@ -3,7 +3,7 @@
 Tests verify deterministic, unique, and stable identifiers for workbooks and tables.
 """
 
-from austimes_tables.ids import generate_table_id, generate_workbook_id
+from times_tables.ids import generate_table_id, generate_workbook_id
 
 
 class TestWorkbookID:
