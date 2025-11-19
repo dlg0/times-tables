@@ -103,9 +103,17 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
+9) Ensure the release is marked as "Latest" on GitHub:
+
+This is critical so users (and the `update` command) can find the new version.
+
+```bash
+gh release create vX.Y.Z --title "vX.Y.Z" --generate-notes --latest
+```
+
 CI will:
 - Validate lint + tests on main and PRs
-- Optional: On tag push `v*`, create a GitHub Release and attach build artifacts
+- Optional: On tag push `v*`, create a GitHub Release (but might not mark it as latest)
 
 ## Post-release verification
 
