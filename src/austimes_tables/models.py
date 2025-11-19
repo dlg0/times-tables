@@ -50,7 +50,8 @@ class TableMeta:
         columns: Ordered list of column names
         primary_keys: Columns forming the primary key
         row_count: Number of data rows (excluding header)
-        csv_path: Relative path to CSV shadow table from deck root
+        csv_path: Relative path to CSV shadow table from the deck's shadow directory
+                  (i.e., relative to deck_root / "shadow")
         csv_sha256: SHA-256 hash of CSV file content
         extracted_at: ISO 8601 timestamp when table was extracted (UTC)
         schema_version: VEDA schema version used (e.g., "veda-tags-2024")
