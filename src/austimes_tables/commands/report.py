@@ -111,8 +111,12 @@ def compute_diff(index_a, index_b):
 
 
 def read_table_data(deck_path: Path, table: TableMeta, limit_rows: int) -> dict[str, Any] | None:
-    """Read table data from CSV."""
-    csv_path = deck_path / table.csv_path
+    """Read table data from CSV.
+
+    Note: table.csv_path is relative to the deck's shadow directory (deck_root/shadow).
+    """
+    shadow_dir = deck_path / "shadow"
+    csv_path = shadow_dir / table.csv_path
     if not csv_path.exists():
         return None
 
@@ -396,7 +400,7 @@ def generate_html(
         for table_key in modified:
             table_a = index_a.tables[table_key]
             table_b = index_b.tables[table_key]
-            row_diff = table_b.row_count - table_a.row_coun
+            row_diff = table_b.row_count - table_a.row_count
             row_diff_str = (
                 f"(+{row_diff})"
                 if row_diff > 0
