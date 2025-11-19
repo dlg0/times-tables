@@ -1,6 +1,5 @@
 """Diff Commits command - orchestrates diffing between two git commits."""
 
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -48,13 +47,10 @@ def diff_commits(
             check=True,
         )
         changed_files = [f for f in result.stdout.splitlines() if f.strip()]
-        
+
         # Filter for Excel files
-        excel_files = [
-            f for f in changed_files 
-            if f.lower().endswith(('.xlsx', '.xls'))
-        ]
-        
+        excel_files = [f for f in changed_files if f.lower().endswith((".xlsx", ".xls"))]
+
         if not excel_files:
             print("No Excel files changed between commits.")
             # Still generate a report to show "No changes"
@@ -72,17 +68,12 @@ def diff_commits(
         head_dir = tmpdir / "head"
 
         def run_git(*args: str) -> None:
-            subprocess.run(
-                ["git", *args],
-                cwd=root,
-                check=True,
-                capture_output=True
-            )
+            subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
 
         try:
             print(f"Checking out {base_ref} to temporary worktree...")
             run_git("worktree", "add", "--detach", "--force", str(base_dir), base_ref)
-            
+
             print(f"Checking out {head_ref} to temporary worktree...")
             run_git("worktree", "add", "--detach", "--force", str(head_dir), head_ref)
 
@@ -97,7 +88,7 @@ def diff_commits(
             # Generate report
             out_path = (root / output).resolve()
             print(f"Generating report at {out_path}...")
-            
+
             return generate_report(
                 deck_a=str(base_dir),
                 deck_b=str(head_dir),
@@ -108,6 +99,7 @@ def diff_commits(
         except Exception as e:
             print(f"Error during diff process: {e}", file=sys.stderr)
             import traceback
+
             traceback.print_exc()
             return 1
 
@@ -120,8 +112,8 @@ def diff_commits(
                     subprocess.run(
                         ["git", "worktree", "remove", "--force", str(wt)],
                         cwd=root,
-                        capture_output=True
+                        capture_output=True,
                     )
-                    
+
             # Prune worktrees to be safe
             subprocess.run(["git", "worktree", "prune"], cwd=root, capture_output=True)

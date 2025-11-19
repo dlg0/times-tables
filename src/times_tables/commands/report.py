@@ -645,8 +645,12 @@ def generate_html(
                     // Skip header alignments
                     if (l === 0 || r === 0) continue;
 
-                    const baseRow = (l > 0 && data.base.rows[l - 1]) ? data.base.rows[l - 1] : null;
-                    const currRow = (r > 0 && data.current.rows[r - 1]) ? data.current.rows[r - 1] : null;
+                    const baseRow = (l > 0 && data.base.rows[l - 1])
+                        ? data.base.rows[l - 1]
+                        : null;
+                    const currRow = (r > 0 && data.current.rows[r - 1])
+                        ? data.current.rows[r - 1]
+                        : null;
 
                     let isChanged = false;
 
@@ -722,8 +726,12 @@ def generate_html(
                         rightTbody.appendChild(rightEllipsisTr);
                     }
 
-                    const baseRow = (l > 0 && data.base.rows[l - 1]) ? data.base.rows[l - 1] : null;
-                    const currRow = (r > 0 && data.current.rows[r - 1]) ? data.current.rows[r - 1] : null;
+                    const baseRow = (l > 0 && data.base.rows[l - 1])
+                        ? data.base.rows[l - 1]
+                        : null;
+                    const currRow = (r > 0 && data.current.rows[r - 1])
+                        ? data.current.rows[r - 1]
+                        : null;
 
                     const leftTr = document.createElement('tr');
                     const rightTr = document.createElement('tr');
@@ -743,8 +751,8 @@ def generate_html(
                         const tdRight = document.createElement('td');
 
                         // Use non-breaking space for empty cells so rows keep height
-                        tdLeft.textContent = baseVal || '\u00A0';
-                        tdRight.textContent = currVal || '\u00A0';
+                        tdLeft.textContent = baseVal || '\u00a0';
+                        tdRight.textContent = currVal || '\u00a0';
 
                         const baseHasCol = c < baseColCount;
                         const currHasCol = c < currColCount;
