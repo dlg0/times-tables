@@ -192,3 +192,18 @@ class VedaSchema:
 
         # Return field metadata by canonical name
         return self._fields_by_tag[tag_name_lower].get(canonical.lower())
+
+    def get_row_ignore_symbols(self, tag_name: str, field_name: str) -> list[str]:
+        """Get row_ignore_symbol list for a field.
+
+        Args:
+            tag_name: Name of the VEDA tag (case-insensitive)
+            field_name: Field name or alias (case-insensitive)
+
+        Returns:
+            List of row ignore symbols (e.g., ["\\I:", "*"]) or empty list
+        """
+        metadata = self.get_field_metadata(tag_name, field_name)
+        if metadata is None:
+            return []
+        return metadata.get("row_ignore_symbol", [])

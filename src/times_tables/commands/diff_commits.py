@@ -53,8 +53,32 @@ def diff_commits(
 
         if not excel_files:
             print("No Excel files changed between commits.")
-            # Still generate a report to show "No changes"
-            # We'll just run with empty lists, effectively
+            # Generate a simple "No changes" report without extraction
+            out_path = (root / output).resolve()
+            # Create a minimal empty report
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <title>VEDA Deck Diff Report</title>
+    <style>
+        body {{ font-family: -apple-system, sans-serif; padding: 40px; text-align: center; color: #666; }}
+        .container {{ max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 40px; border-radius: 8px; }}
+        h1 {{ color: #333; }}
+    </style>
+    </head>
+    <body>
+    <div class="container">
+        <h1>No Changes Detected</h1>
+        <p>No Excel files were modified in this commit.</p>
+        <p><small>Commit range: {base_ref} &rarr; {head_ref}</small></p>
+    </div>
+    </body>
+    </html>
+    """)
+            return 0
     except subprocess.CalledProcessError as e:
         print(f"Error getting changed files: {e.stderr}", file=sys.stderr)
         return 1

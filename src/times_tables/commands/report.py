@@ -8,6 +8,7 @@ from typing import Any
 
 from ..index import TablesIndexIO
 from ..models import TableMeta
+from ..veda import VedaSchema
 
 
 def generate_report(deck_a: str, deck_b: str, output: str, limit_rows: int = 2000) -> int:
@@ -110,10 +111,63 @@ def compute_diff(index_a, index_b):
     }
 
 
-def read_table_data(deck_path: Path, table: TableMeta, limit_rows: int) -> dict[str, Any] | None:
+def normalize_row_for_comparison(
+    row: list[str], columns: list[str], primary_keys: list[str], tag_type: str, schema: VedaSchema
+) -> list[str]:
+    """Normalize a row by stripping row_ignore_symbols from primary key columns.
+
+    This allows rows that differ only by comment markers (\\I:, *) to be
+    matched as the same row during diff comparison.
+
+    Args:
+        row: Data row
+        columns: Column names
+        primary_keys: List of primary key column names
+        tag_type: VEDA tag type (e.g., 'uc_t')
+        schema: VedaSchema instance
+
+    Returns:
+        Normalized row with comment markers stripped from PK columns
+    """
+    normalized = row.copy()
+
+    for i, col_name in enumerate(columns):
+        # Only normalize primary key columns
+        if col_name not in primary_keys:
+            continue
+
+        # Get row_ignore_symbols for this field
+        ignore_symbols = schema.get_row_ignore_symbols(tag_type, col_name)
+        if not ignore_symbols:
+            continue
+
+        # Strip ignore symbols from the cell value
+        if i < len(normalized) and normalized[i]:
+            cell_value = normalized[i]
+            for symbol in ignore_symbols:
+                if cell_value.startswith(symbol):
+                    # Strip the symbol and any following whitespace
+                    normalized[i] = cell_value[len(symbol) :].lstrip()
+                    break
+
+    return normalized
+
+
+def read_table_data(
+    deck_path: Path, table: TableMeta, limit_rows: int, normalize_for_diff: bool = False
+) -> dict[str, Any] | None:
     """Read table data from CSV.
 
     Note: table.csv_path is relative to the deck's shadow directory (deck_root/shadow).
+
+    Args:
+        deck_path: Path to deck root
+        table: Table metadata
+        limit_rows: Maximum rows to read
+        normalize_for_diff: If True, normalize PK columns by stripping row_ignore_symbols
+
+    Returns:
+        Dict with 'columns', 'rows', and optionally 'rows_normalized'
     """
     shadow_dir = deck_path / "shadow"
     csv_path = shadow_dir / table.csv_path
@@ -133,7 +187,21 @@ def read_table_data(deck_path: Path, table: TableMeta, limit_rows: int) -> dict[
                 if i >= limit_rows:
                     break
                 rows.append(row)
-            return {"columns": header, "rows": rows}
+
+            result = {"columns": header, "rows": rows}
+
+            # Add normalized rows for diff comparison if requested
+            if normalize_for_diff and table.primary_keys:
+                schema = VedaSchema()
+                rows_normalized = [
+                    normalize_row_for_comparison(
+                        row, header, table.primary_keys, table.tag_type, schema
+                    )
+                    for row in rows
+                ]
+                result["rows_normalized"] = rows_normalized
+
+            return result
     except Exception:
         return None
 
@@ -171,13 +239,18 @@ def generate_html(
         base_data = None
         current_data = None
 
+        # For modified tables, use normalization to handle comment markers
+        normalize = type_ == "modified"
+
         if type_ in ("removed", "modified"):
             table = index_a.tables[key]
-            base_data = read_table_data(deck_a_path, table, limit_rows)
+            base_data = read_table_data(deck_a_path, table, limit_rows, normalize_for_diff=normalize)
 
         if type_ in ("added", "modified"):
             table = index_b.tables[key]
-            current_data = read_table_data(deck_b_path, table, limit_rows)
+            current_data = read_table_data(
+                deck_b_path, table, limit_rows, normalize_for_diff=normalize
+            )
 
         table_data[key] = {"base": base_data, "current": current_data, "type": type_}
 
@@ -464,7 +537,7 @@ def generate_html(
                 else "(no change)"
             )
             changes_str = f"Rows: {table_a.row_count} → {table_b.row_count} {row_diff_str}"
-            html_parts.append(render_table_item(table_key, "modified", table, changes_str))
+            html_parts.append(render_table_item(table_key, "modified", table_b, changes_str))
         html_parts.append("</div>")
 
     if not added and not removed and not modified:
@@ -625,8 +698,12 @@ def generate_html(
                 const rightTbody = document.createElement('tbody');
 
                 // --- daff alignment ---
-                const table1 = new daff.TableView([data.base.columns, ...data.base.rows]);
-                const table2 = new daff.TableView([data.current.columns, ...data.current.rows]);
+                // Use normalized rows for comparison if available (to handle comment markers)
+                const baseRows = data.base.rows_normalized || data.base.rows;
+                const currentRows = data.current.rows_normalized || data.current.rows;
+
+                const table1 = new daff.TableView([data.base.columns, ...baseRows]);
+                const table2 = new daff.TableView([data.current.columns, ...currentRows]);
 
                 const alignment = daff.compareTables(table1, table2).align();
                 const ordering = alignment.toOrder();
@@ -817,8 +894,12 @@ def generate_html(
                     }
 
                     // Use daff to compute diff
-                    const table1 = new daff.TableView([data.base.columns, ...data.base.rows]);
-                    const table2 = new daff.TableView([data.current.columns, ...data.current.rows]);
+                    // Use normalized rows for comparison if available (to handle comment markers)
+                    const baseRows = data.base.rows_normalized || data.base.rows;
+                    const currentRows = data.current.rows_normalized || data.current.rows;
+
+                    const table1 = new daff.TableView([data.base.columns, ...baseRows]);
+                    const table2 = new daff.TableView([data.current.columns, ...currentRows]);
 
                     const alignment = daff.compareTables(table1, table2).align();
                     const dataDiff = [];

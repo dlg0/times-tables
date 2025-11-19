@@ -49,16 +49,28 @@ def scan_workbook(workbook: Workbook) -> list[dict[str, Any]]:
             tag_value = tag_info["value"]
             tag_type, logical_name = _parse_tag(tag_value)
 
+            # Skip UC_Sets - these are metadata-only, not tables
+            if tag_type == "uc_sets":
+                continue
+
             # Extract headers and data rows with boundary detection
             tag_row = tag_info["row"]
             tag_col = tag_info["col"]
 
-            # Find other tags on same row to determine boundaries
+            # Find other tags on same row to determine boundaries (legacy/safety check)
             other_tags_on_row = tag_positions.get(tag_row, set()) - {tag_col}
 
-            headers, data_rows = _read_table_with_boundaries(
-                sheet, start_row=tag_row, start_col=tag_col, other_tag_cols=other_tags_on_row
-            )
+            # Try to detect table bounds (returns None if no headers found anywhere)
+            bounds = excel.detect_table_bounds(sheet, tag_row, tag_col)
+            
+            if bounds is not None:
+                # Table with headers found
+                headers, data_rows = _read_table_with_boundaries(
+                    sheet, start_row=tag_row, start_col=tag_col, other_tag_cols=other_tags_on_row
+                )
+            else:
+                # Single-value tag with no tabular data (e.g., ~STARTYEAR)
+                headers, data_rows = [], []
 
             # Build table metadata dictionary
             table_dict = {
@@ -96,28 +108,44 @@ def _read_table_with_boundaries(
     header_row_idx = start_row + 1
     data_start_row = start_row + 2
 
-    # If the tag column has no header, scan right to find where headers start
-    # This handles cases where the tag is to the left of the actual table
-    actual_start_col = start_col
-    if sheet.cell(row=header_row_idx, column=start_col).value is None:
-        # Scan right to find first non-None header, up to max reasonable distance
-        for col in range(start_col + 1, start_col + 10):
-            if sheet.cell(row=header_row_idx, column=col).value is not None:
-                actual_start_col = col
-                break
+    # Detect bounds (expand left/right)
+    bounds = excel.detect_table_bounds(sheet, start_row, start_col)
+    if bounds is None:
+        # No valid table (empty cell below tag)
+        return [], []
+    
+    actual_start_col, actual_end_col = bounds
 
-    # Read headers, stopping at None or another tag column
+    # Respect other tags: truncate if we crossed another tag on same row
+    # This handles the case where multiple tables are adjacent without a blank column separator
+    if other_tag_cols:
+        # Find nearest tag to the left: max(c for c in other_tag_cols if c < tag_col)
+        left_tags = [c for c in other_tag_cols if c < start_col]
+        if left_tags:
+            # Clip start to not include columns beyond the nearest left tag
+            nearest_left = max(left_tags)
+            actual_start_col = max(actual_start_col, nearest_left + 1)
+        
+        # Find nearest tag to the right: min(c for c in other_tag_cols if c > tag_col)
+        right_tags = [c for c in other_tag_cols if c > start_col]
+        if right_tags:
+            # Clip end to not include columns beyond the nearest right tag
+            nearest_right = min(right_tags)
+            actual_end_col = min(actual_end_col, nearest_right - 1)
+
+    # Read headers
     headers = []
     col_idx = actual_start_col
-    while True:
-        # Stop if we've reached another table's tag column
-        if col_idx in other_tag_cols:
-            break
+    while col_idx <= actual_end_col:
+        # Stop if we've reached another table's tag column (safety)
+        if col_idx in other_tag_cols and col_idx != start_col:
+             # Only stop if it's NOT our own tag column
+             # But wait, our tag column might be in the middle of the table now.
+             pass
 
         cell_value = sheet.cell(row=header_row_idx, column=col_idx).value
-        if cell_value is None:
-            break
-        headers.append(str(cell_value).strip())
+        # detect_table_bounds ensures non-None, but check anyway
+        headers.append(str(cell_value).strip() if cell_value is not None else "")
         col_idx += 1
 
     if not headers:

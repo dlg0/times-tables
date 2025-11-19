@@ -4,6 +4,7 @@ Minimal wrapper over openpyxl for reading VEDA-tagged tables.
 """
 
 import hashlib
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +22,15 @@ def load_workbook(path: str) -> openpyxl.Workbook:
     Returns:
         openpyxl Workbook object
     """
-    return openpyxl.load_workbook(path, read_only=False, data_only=True)
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            category=UserWarning,
+            message=".*Data Validation extension is not supported.*",
+        )
+        return openpyxl.load_workbook(
+            path, read_only=False, data_only=True, keep_vba=False, keep_links=False
+        )
 
 
 def get_sheet_names(workbook: openpyxl.Workbook) -> list[str]:
@@ -66,6 +75,69 @@ def find_tags(sheet: Worksheet) -> list[dict]:
     return tags
 
 
+def detect_table_bounds(sheet: Worksheet, tag_row: int, tag_col: int) -> tuple[int, int] | None:
+    """Detect the horizontal boundaries (start_col, end_col) of a table.
+
+    Scans left and right from the tag position in the header row (tag_row + 1)
+    to find the contiguous block of non-empty header cells.
+
+    The tag can be anywhere in or near the header row - doesn't have to be
+    directly above a header column. If there's no header at the tag column,
+    we scan right to find the first header, then expand from there.
+
+    Args:
+        sheet: openpyxl Worksheet object
+        tag_row: Tag row
+        tag_col: Tag column
+
+    Returns:
+        (start_col, end_col) indices (1-based), or None if no headers found
+    """
+    header_row = tag_row + 1
+    
+    # Check if tag column has a header directly below it
+    anchor = sheet.cell(row=header_row, column=tag_col).value
+    has_header_at_tag = anchor is not None and str(anchor).strip() != ""
+    
+    if has_header_at_tag:
+        # Standard case: tag is above a header column
+        start_search = tag_col
+    else:
+        # Tag is to the left of headers (or orphaned)
+        # Scan right to find first non-empty header
+        start_search = None
+        for col in range(tag_col + 1, sheet.max_column + 1):
+            val = sheet.cell(row=header_row, column=col).value
+            if val is not None and str(val).strip() != "":
+                start_search = col
+                break
+        
+        if start_search is None:
+            # No headers found to the right of tag
+            return None
+    
+    # Now expand left and right from start_search to find contiguous header block
+    # Scan Left from start position
+    curr = start_search
+    while curr > 1:
+        val = sheet.cell(row=header_row, column=curr - 1).value
+        if val is None or str(val).strip() == "":
+            break
+        curr -= 1
+    start_col = curr
+
+    # Scan Right from start position
+    curr = start_search
+    while curr <= sheet.max_column:
+        val = sheet.cell(row=header_row, column=curr + 1).value
+        if val is None or str(val).strip() == "":
+            break
+        curr += 1
+    end_col = curr
+
+    return start_col, end_col
+
+
 def read_table_range(
     sheet: Worksheet, start_row: int, start_col: int
 ) -> tuple[list[str], list[list[Any]]]:
@@ -84,15 +156,20 @@ def read_table_range(
     header_row_idx = start_row + 1
     data_start_row = start_row + 2
 
+    # Detect bounds (expand left/right)
+    bounds = detect_table_bounds(sheet, start_row, start_col)
+    if bounds is None:
+        # No valid table (empty cell below tag)
+        return [], []
+    
+    actual_start_col, actual_end_col = bounds
+
     # Read headers
     headers = []
-    col_idx = start_col
-    while True:
+    for col_idx in range(actual_start_col, actual_end_col + 1):
         cell_value = sheet.cell(row=header_row_idx, column=col_idx).value
-        if cell_value is None:
-            break
-        headers.append(str(cell_value).strip())
-        col_idx += 1
+        # Should not be None based on detect logic, but safe to check
+        headers.append(str(cell_value).strip() if cell_value is not None else "")
 
     if not headers:
         return [], []
@@ -138,7 +215,8 @@ def read_table_range(
         is_empty = True
 
         for col_offset in range(num_cols):
-            cell_value = sheet.cell(row=row_idx, column=start_col + col_offset).value
+            # Use actual_start_col instead of start_col (which was tag_col)
+            cell_value = sheet.cell(row=row_idx, column=actual_start_col + col_offset).value
             row_data.append(cell_value)
             if cell_value is not None:
                 is_empty = False
