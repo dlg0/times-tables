@@ -64,8 +64,19 @@ def diff_commits(
     <meta charset="UTF-8">
     <title>VEDA Deck Diff Report</title>
     <style>
-        body {{ font-family: -apple-system, sans-serif; padding: 40px; text-align: center; color: #666; }}
-        .container {{ max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 40px; border-radius: 8px; }}
+        body {{
+            font-family: -apple-system, sans-serif;
+            padding: 40px;
+            text-align: center;
+            color: #666;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f9f9f9;
+            padding: 40px;
+            border-radius: 8px;
+        }}
         h1 {{ color: #333; }}
     </style>
     </head>

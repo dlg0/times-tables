@@ -62,7 +62,7 @@ def scan_workbook(workbook: Workbook) -> list[dict[str, Any]]:
 
             # Try to detect table bounds (returns None if no headers found anywhere)
             bounds = excel.detect_table_bounds(sheet, tag_row, tag_col)
-            
+
             if bounds is not None:
                 # Table with headers found
                 headers, data_rows = _read_table_with_boundaries(
@@ -113,7 +113,7 @@ def _read_table_with_boundaries(
     if bounds is None:
         # No valid table (empty cell below tag)
         return [], []
-    
+
     actual_start_col, actual_end_col = bounds
 
     # Respect other tags: truncate if we crossed another tag on same row
@@ -125,7 +125,7 @@ def _read_table_with_boundaries(
             # Clip start to not include columns beyond the nearest left tag
             nearest_left = max(left_tags)
             actual_start_col = max(actual_start_col, nearest_left + 1)
-        
+
         # Find nearest tag to the right: min(c for c in other_tag_cols if c > tag_col)
         right_tags = [c for c in other_tag_cols if c > start_col]
         if right_tags:
@@ -139,9 +139,9 @@ def _read_table_with_boundaries(
     while col_idx <= actual_end_col:
         # Stop if we've reached another table's tag column (safety)
         if col_idx in other_tag_cols and col_idx != start_col:
-             # Only stop if it's NOT our own tag column
-             # But wait, our tag column might be in the middle of the table now.
-             pass
+            # Only stop if it's NOT our own tag column
+            # But wait, our tag column might be in the middle of the table now.
+            pass
 
         cell_value = sheet.cell(row=header_row_idx, column=col_idx).value
         # detect_table_bounds ensures non-None, but check anyway
